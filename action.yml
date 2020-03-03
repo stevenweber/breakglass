@@ -1,9 +1,17 @@
-name: 'sox-emergency'
-description: 'When its a SOX emergency'
+name: 'breakglass'
+description: 'unlock the merge button in case of emergencies'
 author: 'Reverb LLC'
+input:
+  slack_hook:
+    description: Slack webhook for announcements
+    required: true
+  skip_ci_label:
+    description: The label for skipping CI
+    required: true
+  skip_approval:
+    description: The label for skipping peer approval
+    required: true
+
 runs:
   using: 'node12'
   main: 'dist/index.js'
-on:
-  pull_request:
-    types: [labeled]
