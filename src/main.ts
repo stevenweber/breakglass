@@ -2,12 +2,55 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import * as Webhooks from '@octokit/webhooks'
 
+function pp(obj: any): string {
+  return JSON.stringify(obj, undefined, 2);
+}
+
 async function run(): Promise<void> {
   try {
     const event = github.context.payload as Webhooks.WebhookPayloadLabel
-    // Get the JSON webhook payload for the event that triggered the workflow
-    const payload = JSON.stringify(event, undefined, 2);
-    core.debug(`The event payload: ${payload}`);
+    const payload = pp(event);
+    if (event.action !== 'labeled') {
+      core.debug(`ignoring unexpected event: ${payload}`);
+      return
+    }
+
+    const token = core.getInput('github_token');
+
+    const octokit = new github.GitHub(token);
+    const issue = github.context.issue;
+
+    core.debug(`label event received: ${payload}`);
+    if (event.label.name === core.getInput('skip_ci_label')) {
+      core.debug(`skip_ci_label applied`);
+
+      await octokit.issues.createComment({
+        owner: issue.owner,
+        repo: issue.repo,
+        issue_number: issue.number,
+        body: `Bypassing CI checks - ${event.label.name} applied`,
+      });
+
+      const checks = await octokit.checks.listForRef({
+        owner: issue.owner,
+        repo: issue.repo,
+        ref: github.context.ref,
+      });
+
+      core.debug(`bypassing these checks - ${pp(checks)}`);
+    }
+
+    if (event.label.name === core.getInput('skip_approval')) {
+      core.debug(`skip_approval applied`);
+
+      octokit.pulls.createReview({
+        owner: issue.owner,
+        repo: issue.repo,
+        pull_number: issue.number,
+        body: `Skipping approval for label ${event.label.name}`,
+        event: 'APPROVE',
+      });
+    }
   } catch (error) {
     core.setFailed(error.message);
   }

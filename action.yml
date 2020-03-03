@@ -11,6 +11,9 @@ input:
   skip_approval:
     description: The label for skipping peer approval
     required: true
+  repo_token:
+    description: Token injected via secrets
+    required: true
 
 runs:
   using: 'node12'
