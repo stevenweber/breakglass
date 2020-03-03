@@ -1,18 +1,15 @@
 import * as core from '@actions/core'
-import {wait} from './wait'
+import * as github from '@actions/github'
+import * as Webhooks from '@octokit/webhooks'
 
 async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`)
-
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    core.setOutput('time', new Date().toTimeString())
+    const event = github.context.payload as Webhooks.WebhookPayloadLabel
+    // Get the JSON webhook payload for the event that triggered the workflow
+    const payload = JSON.stringify(event, undefined, 2);
+    core.debug(`The event payload: ${payload}`);
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(error.message);
   }
 }
 
