@@ -3,7 +3,7 @@ PATH := $(PATH):node_modules/.bin
 
 .PHONY: clean package lint test test-watch
 
-all: test dist/index.js ## test, build, and pack
+all: lib/main.js test dist/index.js ## test, build, and pack
 package: dist/index.js ## package
 
 lib/main.js: src/main.ts
