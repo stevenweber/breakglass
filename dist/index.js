@@ -52482,12 +52482,22 @@ function onLabel(octokit, context, input) {
             core.debug(`skip_ci_label applied`);
             yield slack(input.slackHook, `Bypassing CI checks for: https://github.com/${owner}/${repo}/${number}`);
             yield comment(octokit, issue, `Bypassing CI checks - ${payload.label.name} applied`);
-            const checks = yield octokit.checks.listForRef({
+            const resp = yield octokit.checks.listForRef({
                 owner: issue.owner,
                 repo: issue.repo,
                 ref
             });
-            core.debug(`bypassing these checks - ${pp(checks)}`);
+            const reqs = resp.data.check_runs.map((run) => __awaiter(this, void 0, void 0, function* () {
+                return octokit.checks.update({
+                    owner: issue.owner,
+                    repo: issue.repo,
+                    check_run_id: run.id,
+                    status: 'completed',
+                    conclusion: 'success',
+                });
+            }));
+            yield Promise.all(reqs);
+            core.debug(`bypassing these checks - ${pp(resp)}`);
         }
         if (payload.label.name === input.skipApprovalLabel) {
             core.debug(`skip_approval applied`);
