@@ -1,13 +1,17 @@
 SHELL:=/usr/bin/env bash
 PATH := $(PATH):node_modules/.bin
 
+SRC := $(shell find src/*.ts)
+OUT := $(patsubst src/%, lib/%.js, $(basename $(SRC)))
+
 .PHONY: clean package lint test test-watch
 
-all: lib/main.js test dist/index.js ## test, build, and pack
+all: lib/main.js dist/index.js ## test, build, and pack
 package: dist/index.js ## package
+test: lint jest
 
-lib/main.js: src/main.ts
-	tsc
+$(word 1, $(OUT)): $(SRC)
+	tsc -p ./tsconfig.json
 
 dist/index.js: lib/main.js
 	ncc build
@@ -17,7 +21,7 @@ clean: ## clean dist/ & lib/
 	rm -rf lib/*
 
 lint: ## run linter
-	eslint src/**/*.ts
+	eslint --quiet src/**/*.ts
 
 test: ## run unit tests
 	jest

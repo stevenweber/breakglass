@@ -6883,75 +6883,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const core = __importStar(__webpack_require__(470));
-const github = __importStar(__webpack_require__(469));
-const request_promise_native_1 = __importDefault(__webpack_require__(117));
-function pp(obj) {
-    return JSON.stringify(obj, undefined, 2);
-}
-function slack(hook, msg) {
-    return __awaiter(this, void 0, void 0, function* () {
-        request_promise_native_1.default({
-            uri: hook,
-            method: 'POST',
-            body: {
-                text: msg,
-            },
-            json: true
-        });
-    });
-}
+const core = __webpack_require__(470);
+const github = __webpack_require__(469);
+const on_pull_request_1 = __webpack_require__(890);
+/**
+ * Entry point for GitHub Actions for any pull_request event
+ *
+ * This runner will apply the inputs, and run the onPullRequestEvent
+ * handler.
+ *
+ * We've split these up for easier unit testing.
+ */
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        const input = {
+            slackHook: core.getInput('slack_hook'),
+            instructions: core.getInput('instructions'),
+            skipApprovalLabel: core.getInput('skip_approval_label'),
+            skipCILabel: core.getInput('skip_ci_label')
+        };
+        const octokit = new github.GitHub(core.getInput('github_token'));
         try {
-            const event = github.context.payload;
-            const payload = pp(event);
-            if (event.action !== 'labeled') {
-                core.debug(`ignoring unexpected event: ${payload}`);
-                return;
-            }
-            const token = core.getInput('github_token');
-            const octokit = new github.GitHub(token);
-            const issue = github.context.issue;
-            const slackHook = core.getInput('slack_hook');
-            core.debug(`label event received: ${payload}`);
-            if (event.label.name === core.getInput('skip_ci_label')) {
-                core.debug(`skip_ci_label applied`);
-                yield slack(slackHook, `bypassing controls - ${pp(issue)}`);
-                yield octokit.issues.createComment({
-                    owner: issue.owner,
-                    repo: issue.repo,
-                    issue_number: issue.number,
-                    body: `Bypassing CI checks - ${event.label.name} applied`,
-                });
-                const checks = yield octokit.checks.listForRef({
-                    owner: issue.owner,
-                    repo: issue.repo,
-                    ref: github.context.ref,
-                });
-                core.debug(`bypassing these checks - ${pp(checks)}`);
-            }
-            if (event.label.name === core.getInput('skip_approval')) {
-                core.debug(`skip_approval applied`);
-                octokit.pulls.createReview({
-                    owner: issue.owner,
-                    repo: issue.repo,
-                    pull_number: issue.number,
-                    body: `Skipping approval for label ${event.label.name}`,
-                    event: 'APPROVE',
-                });
-            }
+            on_pull_request_1.onPullRequest(octokit, github.context, input);
         }
         catch (error) {
             core.setFailed(error.message);
@@ -22046,7 +22000,7 @@ Ajv.prototype.errorsText = errorsText;
 Ajv.prototype._addSchema = _addSchema;
 Ajv.prototype._compile = _compile;
 
-Ajv.prototype.compileAsync = __webpack_require__(890);
+Ajv.prototype.compileAsync = __webpack_require__(559);
 var customKeyword = __webpack_require__(45);
 Ajv.prototype.addKeyword = customKeyword.add;
 Ajv.prototype.getKeyword = customKeyword.get;
@@ -24130,7 +24084,103 @@ function hasPreviousPage (link) {
 
 
 /***/ }),
-/* 559 */,
+/* 559 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+var MissingRefError = __webpack_require__(844).MissingRef;
+
+module.exports = compileAsync;
+
+
+/**
+ * Creates validating function for passed schema with asynchronous loading of missing schemas.
+ * `loadSchema` option should be a function that accepts schema uri and returns promise that resolves with the schema.
+ * @this  Ajv
+ * @param {Object}   schema schema object
+ * @param {Boolean}  meta optional true to compile meta-schema; this parameter can be skipped
+ * @param {Function} callback an optional node-style callback, it is called with 2 parameters: error (or null) and validating function.
+ * @return {Promise} promise that resolves with a validating function.
+ */
+function compileAsync(schema, meta, callback) {
+  /* eslint no-shadow: 0 */
+  /* global Promise */
+  /* jshint validthis: true */
+  var self = this;
+  if (typeof this._opts.loadSchema != 'function')
+    throw new Error('options.loadSchema should be a function');
+
+  if (typeof meta == 'function') {
+    callback = meta;
+    meta = undefined;
+  }
+
+  var p = loadMetaSchemaOf(schema).then(function () {
+    var schemaObj = self._addSchema(schema, undefined, meta);
+    return schemaObj.validate || _compileAsync(schemaObj);
+  });
+
+  if (callback) {
+    p.then(
+      function(v) { callback(null, v); },
+      callback
+    );
+  }
+
+  return p;
+
+
+  function loadMetaSchemaOf(sch) {
+    var $schema = sch.$schema;
+    return $schema && !self.getSchema($schema)
+            ? compileAsync.call(self, { $ref: $schema }, true)
+            : Promise.resolve();
+  }
+
+
+  function _compileAsync(schemaObj) {
+    try { return self._compile(schemaObj); }
+    catch(e) {
+      if (e instanceof MissingRefError) return loadMissingSchema(e);
+      throw e;
+    }
+
+
+    function loadMissingSchema(e) {
+      var ref = e.missingSchema;
+      if (added(ref)) throw new Error('Schema ' + ref + ' is loaded but ' + e.missingRef + ' cannot be resolved');
+
+      var schemaPromise = self._loadingSchemas[ref];
+      if (!schemaPromise) {
+        schemaPromise = self._loadingSchemas[ref] = self._opts.loadSchema(ref);
+        schemaPromise.then(removePromise, removePromise);
+      }
+
+      return schemaPromise.then(function (sch) {
+        if (!added(ref)) {
+          return loadMetaSchemaOf(sch).then(function () {
+            if (!added(ref)) self.addSchema(sch, ref, undefined, meta);
+          });
+        }
+      }).then(function() {
+        return _compileAsync(schemaObj);
+      });
+
+      function removePromise() {
+        delete self._loadingSchemas[ref];
+      }
+
+      function added(ref) {
+        return self._refs[ref] || self._schemas[ref];
+      }
+    }
+  }
+}
+
+
+/***/ }),
 /* 560 */
 /***/ (function(module) {
 
@@ -52370,98 +52420,112 @@ function dumpException(ex)
 /* 888 */,
 /* 889 */,
 /* 890 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
 
-
-var MissingRefError = __webpack_require__(844).MissingRef;
-
-module.exports = compileAsync;
-
-
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const core = __webpack_require__(470);
+const request = __webpack_require__(117);
 /**
- * Creates validating function for passed schema with asynchronous loading of missing schemas.
- * `loadSchema` option should be a function that accepts schema uri and returns promise that resolves with the schema.
- * @this  Ajv
- * @param {Object}   schema schema object
- * @param {Boolean}  meta optional true to compile meta-schema; this parameter can be skipped
- * @param {Function} callback an optional node-style callback, it is called with 2 parameters: error (or null) and validating function.
- * @return {Promise} promise that resolves with a validating function.
+ * Main entry point for all pullRequest actions
+ *
+ * This action is responsible for removing PR checks that
+ * otherwise lock the merge button in the case of an emergency.
+ *
+ * While removing these checks it does so through explicit labels
+ * and will notify any specified slack rooms.
  */
-function compileAsync(schema, meta, callback) {
-  /* eslint no-shadow: 0 */
-  /* global Promise */
-  /* jshint validthis: true */
-  var self = this;
-  if (typeof this._opts.loadSchema != 'function')
-    throw new Error('options.loadSchema should be a function');
-
-  if (typeof meta == 'function') {
-    callback = meta;
-    meta = undefined;
-  }
-
-  var p = loadMetaSchemaOf(schema).then(function () {
-    var schemaObj = self._addSchema(schema, undefined, meta);
-    return schemaObj.validate || _compileAsync(schemaObj);
-  });
-
-  if (callback) {
-    p.then(
-      function(v) { callback(null, v); },
-      callback
-    );
-  }
-
-  return p;
-
-
-  function loadMetaSchemaOf(sch) {
-    var $schema = sch.$schema;
-    return $schema && !self.getSchema($schema)
-            ? compileAsync.call(self, { $ref: $schema }, true)
-            : Promise.resolve();
-  }
-
-
-  function _compileAsync(schemaObj) {
-    try { return self._compile(schemaObj); }
-    catch(e) {
-      if (e instanceof MissingRefError) return loadMissingSchema(e);
-      throw e;
-    }
-
-
-    function loadMissingSchema(e) {
-      var ref = e.missingSchema;
-      if (added(ref)) throw new Error('Schema ' + ref + ' is loaded but ' + e.missingRef + ' cannot be resolved');
-
-      var schemaPromise = self._loadingSchemas[ref];
-      if (!schemaPromise) {
-        schemaPromise = self._loadingSchemas[ref] = self._opts.loadSchema(ref);
-        schemaPromise.then(removePromise, removePromise);
-      }
-
-      return schemaPromise.then(function (sch) {
-        if (!added(ref)) {
-          return loadMetaSchemaOf(sch).then(function () {
-            if (!added(ref)) self.addSchema(sch, ref, undefined, meta);
-          });
+function onPullRequest(octokit, context, input) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { payload } = context;
+        if (payload.action === 'labeled') {
+            yield onLabel(octokit, context, input);
+            return;
         }
-      }).then(function() {
-        return _compileAsync(schemaObj);
-      });
-
-      function removePromise() {
-        delete self._loadingSchemas[ref];
-      }
-
-      function added(ref) {
-        return self._refs[ref] || self._schemas[ref];
-      }
-    }
-  }
+        if (payload.action === 'opened') {
+            yield onOpen(octokit, context, input);
+            return;
+        }
+    });
+}
+exports.onPullRequest = onPullRequest;
+/**
+ * onLabel sets up the PR with a basic checklist
+ */
+function onOpen(octokit, context, input) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const body = input.instructions;
+        yield comment(octokit, context.issue, body);
+    });
+}
+/**
+ * onLabel event checks to see if the emergency-ci or emergency-approval
+ * label has been applied. In the case that either have, the corresponding
+ * check will be removed and recorded.
+ */
+function onLabel(octokit, context, input) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { payload, issue, ref } = context;
+        const { owner, repo, number } = issue;
+        core.debug(`label event received: ${pp(payload)}`);
+        if (payload.label.name === input.skipCILabel) {
+            core.debug(`skip_ci_label applied`);
+            yield slack(input.slackHook, `Bypassing CI checks for: https://github.com/${owner}/${repo}/${number}`);
+            yield comment(octokit, issue, `Bypassing CI checks - ${payload.label.name} applied`);
+            const checks = yield octokit.checks.listForRef({
+                owner: issue.owner,
+                repo: issue.repo,
+                ref
+            });
+            core.debug(`bypassing these checks - ${pp(checks)}`);
+        }
+        if (payload.label.name === input.skipApprovalLabel) {
+            core.debug(`skip_approval applied`);
+            yield slack(input.slackHook, `Bypassing peer approval for: https://github.com/${owner}/${repo}/${number}`);
+            yield octokit.pulls.createReview({
+                owner: issue.owner,
+                repo: issue.repo,
+                pull_number: issue.number,
+                body: `Skipping approval check - ${payload.label.name} applied`,
+                event: 'APPROVE'
+            });
+        }
+    });
+}
+function comment(octokit, issue, body) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield octokit.issues.createComment({
+            owner: issue.owner,
+            repo: issue.repo,
+            issue_number: issue.number,
+            body: body
+        });
+    });
+}
+function slack(hook, msg) {
+    return __awaiter(this, void 0, void 0, function* () {
+        request({
+            uri: hook,
+            method: 'POST',
+            body: {
+                text: msg
+            },
+            json: true
+        });
+    });
+}
+function pp(obj) {
+    return JSON.stringify(obj, undefined, 2);
 }
 
 

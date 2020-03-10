@@ -7,13 +7,28 @@ input:
     required: true
   skip_ci_label:
     description: The label for skipping CI
-    required: true
-  skip_approval:
+    required: false
+    default: emergency-ci
+  skip_approval_label:
     description: The label for skipping peer approval
-    required: true
-  repo_token:
+    required: false
+    default: emergency-approval
+  github_token:
     description: Token injected via secrets
     required: true
+  instructions:
+    description: Instructions to add to each pull request
+    required: false
+    default: |
+      ## Checklists
+
+      - [ ] Approval from a peer that has sufficient context to understand the proposed change
+      - [ ] A description of the change that provides sufficient context for the reviewer
+      - [ ] Relevant tests were added to ensure that code change has the desired impact
+      - [ ] All existing automated test suites are green
+
+      ## Is this an emergency change?
+      If a change needs to be made immediately because of an emergency, you can apply the `emergency-ci` and `emergency-approval` labels to skip those required checks.
 
 runs:
   using: 'node12'
