@@ -67,13 +67,24 @@ async function onLabel(octokit: github.GitHub, context, input: ActionInput) {
       `Bypassing CI checks - ${payload.label.name} applied`
     );
 
-    const checks = await octokit.checks.listForRef({
+    const resp = await octokit.checks.listForRef({
       owner: issue.owner,
       repo: issue.repo,
       ref
     });
 
-    core.debug(`bypassing these checks - ${pp(checks)}`);
+    const reqs = resp.data.check_runs.map(async (run) => {
+      return octokit.checks.update({
+        owner: issue.owner,
+        repo: issue.repo,
+        check_run_id: run.id,
+        status: 'completed',
+        conclusion: 'success',
+      });
+    });
+
+    await Promise.all(reqs);
+    core.debug(`bypassing these checks - ${pp(resp)}`);
   }
 
   if (payload.label.name === input.skipApprovalLabel) {
