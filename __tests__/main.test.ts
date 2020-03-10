@@ -79,6 +79,7 @@ describe('pull request actions', () => {
 
     test('on label emergency-ci', async () => {
       let ghCommentBody;
+      let checkUpdateBody;
 
       const ghCommentReq = nock('https://api.github.com')
         .post('/repos/github/my-repo/issues/12/comments', (req) =>  {
@@ -88,7 +89,25 @@ describe('pull request actions', () => {
 
       const ghChecksReq = nock('https://api.github.com')
         .get('/repos/github/my-repo/commits/f123/check-runs')
-        .reply(200, 'way to go');
+        .reply(200, {
+          check_runs: [
+            {
+              id: 32,
+            },
+            {
+              id: 42,
+            }
+          ],
+        });
+
+      const ghChecksUpdate = nock('https://api.github.com')
+        .patch('/repos/github/my-repo/check-runs/32', (req) => {
+          checkUpdateBody = req;
+          return true;
+        })
+        .reply(200, 'okay!')
+        .patch('/repos/github/my-repo/check-runs/42')
+        .reply(200, 'okay!')
 
       await onPullRequest(
         ghClient,
@@ -100,6 +119,7 @@ describe('pull request actions', () => {
         input,
       );
 
+      expect(checkUpdateBody).toEqual({ conclusion: 'success', status: 'completed' });
       expect(ghCommentBody).toEqual({ body: 'Bypassing CI checks - emergency-ci applied' });
       expect(slackMsg).toEqual({
         text: 'Bypassing CI checks for: https://github.com/github/my-repo/12'
