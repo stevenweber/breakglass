@@ -6,9 +6,8 @@ OUT := $(patsubst src/%, lib/%.js, $(basename $(SRC)))
 
 .PHONY: clean package lint test test-watch
 
-all: lib/main.js dist/index.js ## test, build, and pack
+all: test lib/main.js dist/index.js ## test, build, and pack
 package: dist/index.js ## package
-test: lint jest
 
 $(word 1, $(OUT)): $(SRC)
 	tsc -p ./tsconfig.json
@@ -23,7 +22,7 @@ clean: ## clean dist/ & lib/
 lint: ## run linter
 	eslint --quiet src/**/*.ts
 
-test: ## run unit tests
+test: lint ## run unit tests
 	jest
 
 test-watch: ## start test watcher

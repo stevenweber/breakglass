@@ -85,10 +85,8 @@ async function onLabel(octokit: github.GitHub, context, input: ActionInput) {
       });
     });
 
-    core.debug('got here');
-
-    return await Promise.all(reqs);
-    // core.debug(`bypassing these checks - ${pp(resp)} ${pp(updates)}`);
+    await Promise.all(reqs);
+    core.debug(`bypassing these checks - ${pp(resp)} ${pp(reqs)}`);
   }
 
   if (payload.label.name === input.skipApprovalLabel) {

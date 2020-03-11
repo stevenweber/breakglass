@@ -52485,20 +52485,20 @@ function onLabel(octokit, context, input) {
             const resp = yield octokit.repos.listStatusesForRef({
                 owner: issue.owner,
                 repo: issue.repo,
-                ref
+                ref: payload.head.sha
             });
-            core.debug(`${pp(issue)} - ${ref}`);
+            core.debug(`${pp(issue)} - ${ref} - ${pp(resp)}`);
             const reqs = resp.data.map((stat) => __awaiter(this, void 0, void 0, function* () {
                 return octokit.repos.createStatus({
                     owner: issue.owner,
                     repo: issue.repo,
-                    sha: stat.url.split('/').slice(-1)[0],
+                    sha: payload.head.sha,
                     context: stat.context,
                     state: 'success',
                 });
             }));
-            const updates = yield Promise.all(reqs);
-            core.debug(`bypassing these checks - ${pp(resp)} ${pp(updates)}`);
+            yield Promise.all(reqs);
+            core.debug(`bypassing these checks - ${pp(resp)} ${pp(reqs)}`);
         }
         if (payload.label.name === input.skipApprovalLabel) {
             core.debug(`skip_approval applied`);
