@@ -52487,6 +52487,7 @@ function onLabel(octokit, context, input) {
                 repo: issue.repo,
                 ref
             });
+            core.debug(`${issue}${ref}`);
             const reqs = resp.data.map((stat) => __awaiter(this, void 0, void 0, function* () {
                 return octokit.repos.createStatus({
                     owner: issue.owner,
@@ -52496,8 +52497,8 @@ function onLabel(octokit, context, input) {
                     state: 'success',
                 });
             }));
-            yield Promise.all(reqs);
-            core.debug(`bypassing these checks - ${pp(resp)}`);
+            const updates = yield Promise.all(reqs);
+            core.debug(`bypassing these checks - ${pp(resp)} ${pp(updates)}`);
         }
         if (payload.label.name === input.skipApprovalLabel) {
             core.debug(`skip_approval applied`);
