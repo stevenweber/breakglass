@@ -52485,14 +52485,14 @@ function onLabel(octokit, context, input) {
             const resp = yield octokit.repos.listStatusesForRef({
                 owner: issue.owner,
                 repo: issue.repo,
-                ref: payload.head.sha
+                ref: payload.pull_request.head.sha
             });
             core.debug(`${pp(issue)} - ${ref} - ${pp(resp)}`);
             const reqs = resp.data.map((stat) => __awaiter(this, void 0, void 0, function* () {
                 return octokit.repos.createStatus({
                     owner: issue.owner,
                     repo: issue.repo,
-                    sha: payload.head.sha,
+                    sha: payload.pull_request.head.sha,
                     context: stat.context,
                     state: 'success',
                 });
