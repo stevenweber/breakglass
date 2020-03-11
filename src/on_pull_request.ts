@@ -73,13 +73,13 @@ async function onLabel(octokit: github.GitHub, context, input: ActionInput) {
       ref
     });
 
-    core.debug(`${issue}${ref}`);
+    core.debug(`${pp(issue)} - ${ref}`);
 
     const reqs = resp.data.map(async (stat) => {
       return octokit.repos.createStatus({
         owner: issue.owner,
         repo: issue.repo,
-        sha: ref,
+        sha: stat.url.split('/').slice(-1)[0],
         context: stat.context,
         state: 'success',
       });

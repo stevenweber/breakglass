@@ -77,7 +77,7 @@ describe('pull request actions', () => {
       });
     });
 
-    test('on label emergency-ci', async () => {
+    it('on label emergency-ci', async () => {
       let ghCommentBody;
       let checkUpdateBody;
 
@@ -88,25 +88,27 @@ describe('pull request actions', () => {
         }).reply(200, 'way to go');
 
       const ghChecksReq = nock('https://api.github.com')
-        .get('/repos/github/my-repo/commits/f123/check-runs')
-        .reply(200, {
-          check_runs: [
-            {
-              id: 32,
-            },
-            {
-              id: 42,
-            }
-          ],
-        });
+        .get('/repos/github/my-repo/commits/f123/statuses')
+        .reply(200, [
+          {
+            url: 'https://api.github.com/repos/reverbdotcom/reverb/statuses/cab52f57fe248be607097096ee9cb1900e039df6',
+            context: 'circle-ci rspec',
+            state: 'failure',
+          },
+          {
+            url: 'https://api.github.com/repos/reverbdotcom/reverb/statuses/cab52f57fe248be607097096ee9cb1900e039df6',
+            context: 'circle-ci js',
+            state: 'failure',
+          },
+        ]);
 
       const ghChecksUpdate = nock('https://api.github.com')
-        .patch('/repos/github/my-repo/check-runs/32', (req) => {
+        .post('/repos/github/my-repo/statuses/cab52f57fe248be607097096ee9cb1900e039df6', (req) => {
           checkUpdateBody = req;
           return true;
         })
         .reply(200, 'okay!')
-        .patch('/repos/github/my-repo/check-runs/42')
+        .post('/repos/github/my-repo/statuses/cab52f57fe248be607097096ee9cb1900e039df6')
         .reply(200, 'okay!')
 
       await onPullRequest(
@@ -119,7 +121,7 @@ describe('pull request actions', () => {
         input,
       );
 
-      expect(checkUpdateBody).toEqual({ conclusion: 'success', status: 'completed' });
+      expect(checkUpdateBody).toEqual({ context: 'circle-ci rspec', state: 'success' });
       expect(ghCommentBody).toEqual({ body: 'Bypassing CI checks - emergency-ci applied' });
       expect(slackMsg).toEqual({
         text: 'Bypassing CI checks for: https://github.com/github/my-repo/12'
