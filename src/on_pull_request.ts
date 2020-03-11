@@ -70,23 +70,25 @@ async function onLabel(octokit: github.GitHub, context, input: ActionInput) {
     const resp = await octokit.repos.listStatusesForRef({
       owner: issue.owner,
       repo: issue.repo,
-      ref
+      ref: payload.head.sha
     });
 
-    core.debug(`${pp(issue)} - ${ref}`);
+    core.debug(`${pp(issue)} - ${ref} - ${pp(resp)}`);
 
     const reqs = resp.data.map(async (stat) => {
       return octokit.repos.createStatus({
         owner: issue.owner,
         repo: issue.repo,
-        sha: stat.url.split('/').slice(-1)[0],
+        sha: payload.head.sha,
         context: stat.context,
         state: 'success',
       });
     });
 
-    const updates = await Promise.all(reqs);
-    core.debug(`bypassing these checks - ${pp(resp)} ${pp(updates)}`);
+    core.debug('got here');
+
+    return await Promise.all(reqs);
+    // core.debug(`bypassing these checks - ${pp(resp)} ${pp(updates)}`);
   }
 
   if (payload.label.name === input.skipApprovalLabel) {

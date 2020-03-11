@@ -55,7 +55,7 @@ describe('pull request actions', () => {
     test('on label emergency-approval', async () => {
       let ghReviewBody;
 
-      const ghApprovalReq = nock('https://api.github.com/')
+      nock('https://api.github.com/')
         .post('/repos/github/my-repo/pulls/12/reviews', (req) =>  {
           ghReviewBody = req;
           return true;
@@ -81,40 +81,38 @@ describe('pull request actions', () => {
       let ghCommentBody;
       let checkUpdateBody;
 
-      const ghCommentReq = nock('https://api.github.com')
+      nock('https://api.github.com')
         .post('/repos/github/my-repo/issues/12/comments', (req) =>  {
           ghCommentBody = req;
           return true;
         }).reply(200, 'way to go');
 
-      const ghChecksReq = nock('https://api.github.com')
-        .get('/repos/github/my-repo/commits/f123/statuses')
+      nock('https://api.github.com')
+        .get('/repos/github/my-repo/commits/cab4/statuses')
         .reply(200, [
           {
-            url: 'https://api.github.com/repos/reverbdotcom/reverb/statuses/cab52f57fe248be607097096ee9cb1900e039df6',
             context: 'circle-ci rspec',
             state: 'failure',
           },
           {
-            url: 'https://api.github.com/repos/reverbdotcom/reverb/statuses/cab52f57fe248be607097096ee9cb1900e039df6',
             context: 'circle-ci js',
             state: 'failure',
           },
         ]);
 
-      const ghChecksUpdate = nock('https://api.github.com')
-        .post('/repos/github/my-repo/statuses/cab52f57fe248be607097096ee9cb1900e039df6', (req) => {
+      nock('https://api.github.com')
+        .post('/repos/github/my-repo/statuses/cab4', (req) => {
           checkUpdateBody = req;
           return true;
         })
         .reply(200, 'okay!')
-        .post('/repos/github/my-repo/statuses/cab52f57fe248be607097096ee9cb1900e039df6')
+        .post('/repos/github/my-repo/statuses/cab4')
         .reply(200, 'okay!')
 
       await onPullRequest(
         ghClient,
         {
-          payload: { action: 'labeled', label: { name: 'emergency-ci' } },
+          payload: { head: { sha: 'cab4' }, action: 'labeled', label: { name: 'emergency-ci' } },
           issue: { owner: 'github', repo: 'my-repo', number: 12 },
           ref: 'f123',
         },
