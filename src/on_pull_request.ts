@@ -70,7 +70,7 @@ async function onLabel(octokit: github.GitHub, context, input: ActionInput) {
     const resp = await octokit.repos.listStatusesForRef({
       owner: issue.owner,
       repo: issue.repo,
-      ref: payload.head.sha
+      ref: payload.pull_request.head.sha
     });
 
     core.debug(`${pp(issue)} - ${ref} - ${pp(resp)}`);
@@ -79,7 +79,7 @@ async function onLabel(octokit: github.GitHub, context, input: ActionInput) {
       return octokit.repos.createStatus({
         owner: issue.owner,
         repo: issue.repo,
-        sha: payload.head.sha,
+        sha: payload.pull_request.head.sha,
         context: stat.context,
         state: 'success',
       });

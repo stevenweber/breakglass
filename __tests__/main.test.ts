@@ -112,7 +112,7 @@ describe('pull request actions', () => {
       await onPullRequest(
         ghClient,
         {
-          payload: { head: { sha: 'cab4' }, action: 'labeled', label: { name: 'emergency-ci' } },
+          payload: { pull_request: { head: { sha: 'cab4' } }, action: 'labeled', label: { name: 'emergency-ci' } },
           issue: { owner: 'github', repo: 'my-repo', number: 12 },
           ref: 'f123',
         },
