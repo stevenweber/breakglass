@@ -52433,6 +52433,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __webpack_require__(470);
 const request = __webpack_require__(117);
@@ -52474,31 +52481,43 @@ function onOpen(octokit, context, input) {
  * check will be removed and recorded.
  */
 function onLabel(octokit, context, input) {
+    var e_1, _a;
     return __awaiter(this, void 0, void 0, function* () {
-        const { payload, issue, ref } = context;
+        const { payload, issue } = context;
         const { owner, repo, number } = issue;
         core.debug(`label event received: ${pp(payload)}`);
         if (payload.label.name === input.skipCILabel) {
             core.debug(`skip_ci_label applied`);
             yield slack(input.slackHook, `Bypassing CI checks for: https://github.com/${owner}/${repo}/${number}`);
             yield comment(octokit, issue, `Bypassing CI checks - ${payload.label.name} applied`);
-            const resp = yield octokit.repos.listStatusesForRef({
+            const options = yield octokit.repos.listStatusesForRef.endpoint.merge({
                 owner: issue.owner,
                 repo: issue.repo,
                 ref: payload.pull_request.head.sha
             });
-            core.debug(`${pp(issue)} - ${ref} - ${pp(resp)}`);
-            const reqs = resp.data.map((stat) => __awaiter(this, void 0, void 0, function* () {
-                return octokit.repos.createStatus({
-                    owner: issue.owner,
-                    repo: issue.repo,
-                    sha: payload.pull_request.head.sha,
-                    context: stat.context,
-                    state: 'success',
-                });
-            }));
-            yield Promise.all(reqs);
-            core.debug(`bypassing these checks - ${pp(resp)} ${pp(reqs)}`);
+            try {
+                for (var _b = __asyncValues(octokit.paginate.iterator(options)), _c; _c = yield _b.next(), !_c.done;) {
+                    const resp = _c.value;
+                    const reqs = resp.data.map((stat) => __awaiter(this, void 0, void 0, function* () {
+                        return octokit.repos.createStatus({
+                            owner: issue.owner,
+                            repo: issue.repo,
+                            sha: payload.pull_request.head.sha,
+                            context: stat.context,
+                            state: 'success',
+                        });
+                        core.debug(`bypassing check - ${stat.context}`);
+                    }));
+                    yield Promise.all(reqs);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (_c && !_c.done && (_a = _b.return)) yield _a.call(_b);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
         }
         if (payload.label.name === input.skipApprovalLabel) {
             core.debug(`skip_approval applied`);
