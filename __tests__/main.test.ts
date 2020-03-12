@@ -89,13 +89,24 @@ describe('pull request actions', () => {
 
       nock('https://api.github.com')
         .get('/repos/github/my-repo/commits/cab4/statuses')
+        .reply(
+          200,
+          [
+            {
+              context: 'circle-ci rspec',
+              state: 'failure',
+            },
+            {
+              context: 'circle-ci js',
+              state: 'failure',
+            },
+          ],
+          { Link: '<https://api.github.com/r/12/statuses/9bb?page=2>; rel="next", <https://api.github.com/r/12/statuses/9b?page=2>; rel="last"' }
+        )
+        .get('/r/12/statuses/9bb?page=2')
         .reply(200, [
           {
-            context: 'circle-ci rspec',
-            state: 'failure',
-          },
-          {
-            context: 'circle-ci js',
+            context: 'circle-ci lint',
             state: 'failure',
           },
         ]);
@@ -105,6 +116,8 @@ describe('pull request actions', () => {
           checkUpdateBody = req;
           return true;
         })
+        .reply(200, 'okay!')
+        .post('/repos/github/my-repo/statuses/cab4')
         .reply(200, 'okay!')
         .post('/repos/github/my-repo/statuses/cab4')
         .reply(200, 'okay!')

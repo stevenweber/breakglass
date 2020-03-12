@@ -49,7 +49,7 @@ async function onOpen(octokit: github.GitHub, context, input: ActionInput) {
  * check will be removed and recorded.
  */
 async function onLabel(octokit: github.GitHub, context, input: ActionInput) {
-  const { payload, issue, ref } = context;
+  const { payload, issue } = context;
   const { owner, repo, number } = issue;
 
   core.debug(`label event received: ${pp(payload)}`);
@@ -67,26 +67,27 @@ async function onLabel(octokit: github.GitHub, context, input: ActionInput) {
       `Bypassing CI checks - ${payload.label.name} applied`
     );
 
-    const resp = await octokit.repos.listStatusesForRef({
+    const options = await octokit.repos.listStatusesForRef.endpoint.merge({
       owner: issue.owner,
       repo: issue.repo,
       ref: payload.pull_request.head.sha
     });
 
-    core.debug(`${pp(issue)} - ${ref} - ${pp(resp)}`);
 
-    const reqs = resp.data.map(async (stat) => {
-      return octokit.repos.createStatus({
-        owner: issue.owner,
-        repo: issue.repo,
-        sha: payload.pull_request.head.sha,
-        context: stat.context,
-        state: 'success',
+    for await (const resp of octokit.paginate.iterator(options)) {
+      const reqs = resp.data.map(async (stat) => {
+        return octokit.repos.createStatus({
+          owner: issue.owner,
+          repo: issue.repo,
+          sha: payload.pull_request.head.sha,
+          context: stat.context,
+          state: 'success',
+        });
+        core.debug(`bypassing check - ${stat.context}`);
       });
-    });
 
-    await Promise.all(reqs);
-    core.debug(`bypassing these checks - ${pp(resp)} ${pp(reqs)}`);
+      await Promise.all(reqs);
+    }
   }
 
   if (payload.label.name === input.skipApprovalLabel) {
