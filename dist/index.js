@@ -52490,7 +52490,7 @@ function onLabel(octokit, context, input) {
             core.debug(`skip_ci_label applied`);
             yield slack(input.slackHook, `Bypassing CI checks for: https://github.com/${owner}/${repo}/${number}`);
             yield comment(octokit, issue, `Bypassing CI checks - ${payload.label.name} applied`);
-            const options = yield octokit.repos.listStatusesForRef.endpoint.merge({
+            const options = yield octokit.repos.getCombinedStatusForRef.endpoint.merge({
                 owner: issue.owner,
                 repo: issue.repo,
                 ref: payload.pull_request.head.sha
@@ -52498,7 +52498,10 @@ function onLabel(octokit, context, input) {
             try {
                 for (var _b = __asyncValues(octokit.paginate.iterator(options)), _c; _c = yield _b.next(), !_c.done;) {
                     const resp = _c.value;
-                    const reqs = resp.data.map((stat) => __awaiter(this, void 0, void 0, function* () {
+                    // core.debug(`current statuses - ${pp(resp)}`);
+                    console.log(pp(resp));
+                    const reqs = resp.data.statuses.map((stat) => __awaiter(this, void 0, void 0, function* () {
+                        core.debug(`bypassing check - ${stat.context}`);
                         return octokit.repos.createStatus({
                             owner: issue.owner,
                             repo: issue.repo,
@@ -52506,7 +52509,6 @@ function onLabel(octokit, context, input) {
                             context: stat.context,
                             state: 'success',
                         });
-                        core.debug(`bypassing check - ${stat.context}`);
                     }));
                     yield Promise.all(reqs);
                 }

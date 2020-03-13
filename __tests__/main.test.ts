@@ -88,28 +88,32 @@ describe('pull request actions', () => {
         }).reply(200, 'way to go');
 
       nock('https://api.github.com')
-        .get('/repos/github/my-repo/commits/cab4/statuses')
+        .get('/repos/github/my-repo/commits/cab4/status')
         .reply(
           200,
-          [
-            {
-              context: 'circle-ci rspec',
-              state: 'failure',
-            },
-            {
-              context: 'circle-ci js',
-              state: 'failure',
-            },
-          ],
+          {
+            statuses: [
+              {
+                context: 'circle-ci rspec',
+                state: 'failure',
+              },
+              {
+                context: 'circle-ci js',
+                state: 'failure',
+              },
+            ],
+          },
           { Link: '<https://api.github.com/r/12/statuses/9bb?page=2>; rel="next", <https://api.github.com/r/12/statuses/9b?page=2>; rel="last"' }
         )
         .get('/r/12/statuses/9bb?page=2')
-        .reply(200, [
-          {
-            context: 'circle-ci lint',
-            state: 'failure',
-          },
-        ]);
+        .reply(200, {
+          statuses: [
+            {
+              context: 'circle-ci lint',
+              state: 'failure',
+            },
+          ]
+        });
 
       nock('https://api.github.com')
         .post('/repos/github/my-repo/statuses/cab4', (req) => {

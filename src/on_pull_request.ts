@@ -67,15 +67,16 @@ async function onLabel(octokit: github.GitHub, context, input: ActionInput) {
       `Bypassing CI checks - ${payload.label.name} applied`
     );
 
-    const options = await octokit.repos.listStatusesForRef.endpoint.merge({
+    const options = await octokit.repos.getCombinedStatusForRef.endpoint.merge({
       owner: issue.owner,
       repo: issue.repo,
       ref: payload.pull_request.head.sha
     });
 
-
     for await (const resp of octokit.paginate.iterator(options)) {
-      const reqs = resp.data.map(async (stat) => {
+      core.debug(`current statuses - ${pp(resp)}`);
+      const reqs = resp.data.statuses.map(async (stat) => {
+        core.debug(`bypassing check - ${stat.context}`);
         return octokit.repos.createStatus({
           owner: issue.owner,
           repo: issue.repo,
@@ -83,7 +84,6 @@ async function onLabel(octokit: github.GitHub, context, input: ActionInput) {
           context: stat.context,
           state: 'success',
         });
-        core.debug(`bypassing check - ${stat.context}`);
       });
 
       await Promise.all(reqs);
