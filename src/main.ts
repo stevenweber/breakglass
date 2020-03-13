@@ -16,7 +16,8 @@ async function run(): Promise<void> {
     slackHook: core.getInput('slack_hook'),
     instructions: core.getInput('instructions'),
     skipApprovalLabel: core.getInput('skip_approval_label'),
-    skipCILabel: core.getInput('skip_ci_label')
+    skipCILabel: core.getInput('skip_ci_label'),
+    requiredChecks: core.getInput('required_checks').split(','),
   }
 
   const octokit = new github.GitHub(core.getInput('github_token'));

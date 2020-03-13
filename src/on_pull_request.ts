@@ -7,6 +7,7 @@ interface ActionInput {
   instructions: string;
   skipApprovalLabel: string;
   skipCILabel: string;
+  requiredChecks: string[];
 }
 
 /**
@@ -43,14 +44,8 @@ async function onOpen(octokit: github.GitHub, context, input: ActionInput) {
   );
 }
 
-async function byPassChecks(octokit, issue, sha) {
-  const requiredChecks = await octokit.repos.getProtectedBranchRequiredStatusChecks({
-    branch: 'master',
-    owner: issue.owner,
-    repo: issue.repo,
-  });
-
-  const reqs = requiredChecks.data.contexts.map(async (context) => {
+async function byPassChecks(octokit, issue, sha, checks) {
+  const reqs = checks.map(async (context) => {
     core.debug(`bypassing check - ${context}`);
     return octokit.repos.createStatus({
       owner: issue.owner,
@@ -92,6 +87,7 @@ async function onLabel(octokit: github.GitHub, context, input: ActionInput) {
       octokit,
       issue,
       payload.pull_request.head.sha,
+      input.requiredChecks,
     );
   }
 

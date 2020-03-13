@@ -16,6 +16,9 @@ input:
   github_token:
     description: Token injected via secrets
     required: true
+  required_checks:
+    description: All required check names
+    required: true
   instructions:
     description: Instructions to add to each pull request
     required: false

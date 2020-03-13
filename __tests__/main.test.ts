@@ -12,6 +12,7 @@ const input = {
   instructions: 'this is how we pr',
   skipApprovalLabel: 'emergency-approval',
   skipCILabel: 'emergency-ci',
+  requiredChecks: ['ci/circleci: fast_spec', 'ci/circleci: js'],
 }
 
 describe('pull request actions', () => {
@@ -88,18 +89,6 @@ describe('pull request actions', () => {
         }).reply(200, 'way to go');
 
       nock('https://api.github.com')
-        .get('/repos/github/my-repo/branches/master/protection/required_status_checks')
-        .reply(
-          200,
-          {
-            contexts: [
-              'circle-ci rspec',
-              'compile-test',
-            ],
-          },
-        )
-
-      nock('https://api.github.com')
         .post('/repos/github/my-repo/statuses/cab4', (req) => {
           checkUpdateBody = req;
           return true;
@@ -118,7 +107,7 @@ describe('pull request actions', () => {
         input,
       );
 
-      expect(checkUpdateBody).toEqual({ context: 'circle-ci rspec', state: 'success' });
+      expect(checkUpdateBody).toEqual({ context: 'ci/circleci: fast_spec', state: 'success' });
       expect(ghCommentBody).toEqual({ body: 'Bypassing CI checks - emergency-ci applied' });
       expect(slackMsg).toEqual({
         text: 'Bypassing CI checks for: https://github.com/github/my-repo/12'

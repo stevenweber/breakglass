@@ -6901,7 +6901,8 @@ function run() {
             slackHook: core.getInput('slack_hook'),
             instructions: core.getInput('instructions'),
             skipApprovalLabel: core.getInput('skip_approval_label'),
-            skipCILabel: core.getInput('skip_ci_label')
+            skipCILabel: core.getInput('skip_ci_label'),
+            requiredChecks: core.getInput('required_checks').split(','),
         };
         const octokit = new github.GitHub(core.getInput('github_token'));
         try {
@@ -52468,14 +52469,9 @@ function onOpen(octokit, context, input) {
         yield comment(octokit, context.issue, body);
     });
 }
-function byPassChecks(octokit, issue, sha) {
+function byPassChecks(octokit, issue, sha, checks) {
     return __awaiter(this, void 0, void 0, function* () {
-        const requiredChecks = yield octokit.repos.getProtectedBranchRequiredStatusChecks({
-            branch: 'master',
-            owner: issue.owner,
-            repo: issue.repo,
-        });
-        const reqs = requiredChecks.data.contexts.map((context) => __awaiter(this, void 0, void 0, function* () {
+        const reqs = checks.map((context) => __awaiter(this, void 0, void 0, function* () {
             core.debug(`bypassing check - ${context}`);
             return octokit.repos.createStatus({
                 owner: issue.owner,
@@ -52502,7 +52498,7 @@ function onLabel(octokit, context, input) {
             core.debug(`skip_ci_label applied`);
             yield slack(input.slackHook, `Bypassing CI checks for: https://github.com/${owner}/${repo}/${number}`);
             yield comment(octokit, issue, `Bypassing CI checks - ${payload.label.name} applied`);
-            yield byPassChecks(octokit, issue, payload.pull_request.head.sha);
+            yield byPassChecks(octokit, issue, payload.pull_request.head.sha, input.requiredChecks);
         }
         if (payload.label.name === input.skipApprovalLabel) {
             core.debug(`skip_approval applied`);
