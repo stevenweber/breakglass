@@ -43,13 +43,34 @@ async function onOpen(octokit: github.GitHub, context, input: ActionInput) {
   );
 }
 
+async function byPassChecks(octokit, issue, sha) {
+  const requiredChecks = await octokit.repos.getProtectedBranchRequiredStatusChecks({
+    branch: 'master',
+    owner: issue.owner,
+    repo: issue.repo,
+  });
+
+  const reqs = requiredChecks.data.contexts.map(async (context) => {
+    core.debug(`bypassing check - ${context}`);
+    return octokit.repos.createStatus({
+      owner: issue.owner,
+      repo: issue.repo,
+      sha: sha,
+      context,
+      state: 'success',
+    });
+  });
+
+  await Promise.all(reqs);
+}
+
 /**
  * onLabel event checks to see if the emergency-ci or emergency-approval
  * label has been applied. In the case that either have, the corresponding
  * check will be removed and recorded.
  */
 async function onLabel(octokit: github.GitHub, context, input: ActionInput) {
-  const { payload, issue } = context;
+  const { issue, payload } = context;
   const { owner, repo, number } = issue;
 
   core.debug(`label event received: ${pp(payload)}`);
@@ -67,27 +88,11 @@ async function onLabel(octokit: github.GitHub, context, input: ActionInput) {
       `Bypassing CI checks - ${payload.label.name} applied`
     );
 
-    const options = await octokit.repos.getCombinedStatusForRef.endpoint.merge({
-      owner: issue.owner,
-      repo: issue.repo,
-      ref: payload.pull_request.head.sha
-    });
-
-    for await (const resp of octokit.paginate.iterator(options)) {
-      core.debug(`current statuses - ${pp(resp)}`);
-      const reqs = resp.data.statuses.map(async (stat) => {
-        core.debug(`bypassing check - ${stat.context}`);
-        return octokit.repos.createStatus({
-          owner: issue.owner,
-          repo: issue.repo,
-          sha: payload.pull_request.head.sha,
-          context: stat.context,
-          state: 'success',
-        });
-      });
-
-      await Promise.all(reqs);
-    }
+    await byPassChecks(
+      octokit,
+      issue,
+      payload.pull_request.head.sha,
+    );
   }
 
   if (payload.label.name === input.skipApprovalLabel) {

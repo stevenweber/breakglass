@@ -88,32 +88,16 @@ describe('pull request actions', () => {
         }).reply(200, 'way to go');
 
       nock('https://api.github.com')
-        .get('/repos/github/my-repo/commits/cab4/status')
+        .get('/repos/github/my-repo/branches/master/protection/required_status_checks')
         .reply(
           200,
           {
-            statuses: [
-              {
-                context: 'circle-ci rspec',
-                state: 'failure',
-              },
-              {
-                context: 'circle-ci js',
-                state: 'failure',
-              },
+            contexts: [
+              'circle-ci rspec',
+              'compile-test',
             ],
           },
-          { Link: '<https://api.github.com/r/12/statuses/9bb?page=2>; rel="next", <https://api.github.com/r/12/statuses/9b?page=2>; rel="last"' }
         )
-        .get('/r/12/statuses/9bb?page=2')
-        .reply(200, {
-          statuses: [
-            {
-              context: 'circle-ci lint',
-              state: 'failure',
-            },
-          ]
-        });
 
       nock('https://api.github.com')
         .post('/repos/github/my-repo/statuses/cab4', (req) => {
@@ -123,13 +107,11 @@ describe('pull request actions', () => {
         .reply(200, 'okay!')
         .post('/repos/github/my-repo/statuses/cab4')
         .reply(200, 'okay!')
-        .post('/repos/github/my-repo/statuses/cab4')
-        .reply(200, 'okay!')
 
       await onPullRequest(
         ghClient,
         {
-          payload: { pull_request: { head: { sha: 'cab4' } }, action: 'labeled', label: { name: 'emergency-ci' } },
+          payload: { pull_request: { head: { ref: 'erik/sox', sha: 'cab4' } }, action: 'labeled', label: { name: 'emergency-ci' } },
           issue: { owner: 'github', repo: 'my-repo', number: 12 },
           ref: 'f123',
         },
