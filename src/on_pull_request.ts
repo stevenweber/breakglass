@@ -114,7 +114,7 @@ async function comment(octokit: github.GitHub, issue, body: string) {
     owner: issue.owner,
     repo: issue.repo,
     issue_number: issue.number,
-    body: body
+    body: body.concat(getDateTime())
   });
 }
 
@@ -131,4 +131,19 @@ async function slack(hook: string, msg: string) {
 
 function pp(obj: Record<string, any>): string {
   return JSON.stringify(obj, undefined, 2);
+}
+
+function getDateTime() {
+  let date_ob = new Date();
+  let date = intTwoChars(date_ob.getDate());
+  let month = intTwoChars(date_ob.getMonth() + 1);
+  let year = date_ob.getFullYear();
+  let hours = intTwoChars(date_ob.getHours());
+  let minutes = intTwoChars(date_ob.getMinutes());
+  let seconds = intTwoChars(date_ob.getSeconds());
+  return `\n${hours}:${minutes}:${seconds} ${month}/${date}/${year}`;
+}
+
+function intTwoChars(i) {
+  return (`0${i}`).slice(-2);
 }

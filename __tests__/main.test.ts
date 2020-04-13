@@ -1,4 +1,5 @@
 import * as nock from 'nock';
+import * as mockdate from 'mockdate'
 nock.disableNetConnect()
 
 import { onPullRequest } from '../src/on_pull_request';
@@ -14,6 +15,7 @@ const input = {
   skipCILabel: 'emergency-ci',
   requiredChecks: ['ci/circleci: fast_spec', 'ci/circleci: js'],
 }
+mockdate.set('2000-11-22');
 
 describe('pull request actions', () => {
   afterEach(() => {
@@ -39,7 +41,8 @@ describe('pull request actions', () => {
       input,
     );
 
-    expect(body).toEqual({ body: 'this is how we pr' });
+    expect(body['body']).toContain('this is how we pr');
+    expect(body['body']).toContain('18:00:00 11/21/2000');
   });
 
   describe('on label', () => {
@@ -108,7 +111,8 @@ describe('pull request actions', () => {
       );
 
       expect(checkUpdateBody).toEqual({ context: 'ci/circleci: fast_spec', state: 'success' });
-      expect(ghCommentBody).toEqual({ body: 'Bypassing CI checks - emergency-ci applied' });
+      expect(ghCommentBody['body']).toContain('Bypassing CI checks - emergency-ci applied');
+      expect(ghCommentBody['body']).toContain('18:00:00 11/21/2000');
       expect(slackMsg).toEqual({
         text: 'Bypassing CI checks for: https://github.com/github/my-repo/12'
       });
