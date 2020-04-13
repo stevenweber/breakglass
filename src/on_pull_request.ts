@@ -52,7 +52,7 @@ async function byPassChecks(octokit, issue, sha, checks) {
       repo: issue.repo,
       sha: sha,
       context,
-      state: 'success',
+      state: 'success'
     });
   });
 
@@ -114,7 +114,7 @@ async function comment(octokit: github.GitHub, issue, body: string) {
     owner: issue.owner,
     repo: issue.repo,
     issue_number: issue.number,
-    body: body
+    body: body.concat(getDateTime())
   });
 }
 
@@ -131,4 +131,8 @@ async function slack(hook: string, msg: string) {
 
 function pp(obj: Record<string, any>): string {
   return JSON.stringify(obj, undefined, 2);
+}
+
+function getDateTime() {
+  return `\n ${ new Date().toString() }`
 }
