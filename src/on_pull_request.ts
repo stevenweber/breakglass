@@ -52,7 +52,7 @@ async function byPassChecks(octokit, issue, sha, checks) {
       repo: issue.repo,
       sha: sha,
       context,
-      state: 'success',
+      state: 'success'
     });
   });
 
@@ -134,16 +134,5 @@ function pp(obj: Record<string, any>): string {
 }
 
 function getDateTime() {
-  const date_ob = new Date();
-  const date = intTwoChars(date_ob.getDate());
-  const month = intTwoChars(date_ob.getMonth() + 1);
-  const year = date_ob.getFullYear();
-  const hours = intTwoChars(date_ob.getHours());
-  const minutes = intTwoChars(date_ob.getMinutes());
-  const seconds = intTwoChars(date_ob.getSeconds());
-  return `\n${hours}:${minutes}:${seconds} ${month}/${date}/${year}`;
-}
-
-function intTwoChars(i) {
-  return (`0${i}`).slice(-2);
+  return `\n ${ new Date().toString() }`
 }

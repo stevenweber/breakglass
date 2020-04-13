@@ -15,7 +15,7 @@ const input = {
   skipCILabel: 'emergency-ci',
   requiredChecks: ['ci/circleci: fast_spec', 'ci/circleci: js'],
 }
-mockdate.set('2000-11-22');
+mockdate.set('2000-1-1 00:00:00');
 
 describe('pull request actions', () => {
   afterEach(() => {
@@ -42,7 +42,7 @@ describe('pull request actions', () => {
     );
 
     expect(body['body']).toContain('this is how we pr');
-    expect(body['body']).toContain('18:00:00 11/21/2000');
+    expect(body['body']).toContain('Jan 01 2000 00:00:00');
   });
 
   describe('on label', () => {
@@ -112,7 +112,7 @@ describe('pull request actions', () => {
 
       expect(checkUpdateBody).toEqual({ context: 'ci/circleci: fast_spec', state: 'success' });
       expect(ghCommentBody['body']).toContain('Bypassing CI checks - emergency-ci applied');
-      expect(ghCommentBody['body']).toContain('18:00:00 11/21/2000');
+      expect(ghCommentBody['body']).toContain('Jan 01 2000 00:00:00');
       expect(slackMsg).toEqual({
         text: 'Bypassing CI checks for: https://github.com/github/my-repo/12'
       });
