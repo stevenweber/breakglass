@@ -1,11 +1,12 @@
 import * as nock from 'nock';
 import * as mockdate from 'mockdate'
-nock.disableNetConnect()
-
 import { onPullRequest } from '../src/on_pull_request';
-import * as github from '@actions/github'
+import * as github from '@actions/github';
+import * as core from '@actions/core';
 
-nock('https://api.github.com').log(console.log)
+nock.disableNetConnect();
+nock('https://api.github.com').log(console.log);
+mockdate.set('2000-1-1 00:00:00');
 
 const ghClient = new github.GitHub('foozles');
 const input = {
@@ -13,9 +14,11 @@ const input = {
   instructions: 'this is how we pr',
   skipApprovalLabel: 'emergency-approval',
   skipCILabel: 'emergency-ci',
-  requiredChecks: ['ci/circleci: fast_spec', 'ci/circleci: js'],
-}
-mockdate.set('2000-1-1 00:00:00');
+  requiredChecks: [
+    'ci/circleci: fast_spec',
+    'ci/circleci: js',
+  ],
+};
 
 describe('pull request actions', () => {
   afterEach(() => {
@@ -103,7 +106,7 @@ describe('pull request actions', () => {
       await onPullRequest(
         ghClient,
         {
-          payload: { pull_request: { head: { ref: 'erik/sox', sha: 'cab4' } }, action: 'labeled', label: { name: 'emergency-ci' } },
+          payload: { pull_request: { head: { ref: 'erik/foo', sha: 'cab4' } }, action: 'labeled', label: { name: 'emergency-ci' } },
           issue: { owner: 'github', repo: 'my-repo', number: 12 },
           ref: 'f123',
         },

@@ -35,7 +35,7 @@ module.exports = {
     'arrow-body-style': [0],
     'arrow-parens': [0],
     'class-methods-use-this': ['warn'],
-    'comma-dangle': ['warn'],
+    'comma-dangle': ['error', 'always-multiline'],
     'consistent-return': ['warn'],
     'default-case': ['warn'],
     'dot-notation': ['warn'],
@@ -68,6 +68,7 @@ module.exports = {
     'prefer-destructuring': ['warn'],
     'prefer-object-spread': ['warn'],
     'prefer-promise-reject-errors': [0],
-    'prefer-spread': ['warn']
+    'prefer-spread': ['warn'],
+    'semi': ["error", "always"]
   },
 }
