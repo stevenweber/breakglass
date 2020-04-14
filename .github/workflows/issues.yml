@@ -1,0 +1,19 @@
+name: sample-issue-workflow
+on:
+  issues:
+    types: [opened, assigned, labeled]
+
+jobs:
+  handle-issues:
+    name: Handle issues ;)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Breakglass issue integration
+      uses: ./
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
