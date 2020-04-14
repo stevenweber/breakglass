@@ -1,23 +1,40 @@
 import * as nock from 'nock';
 import * as mockdate from 'mockdate'
-nock.disableNetConnect()
-
 import { onPullRequest } from '../src/on_pull_request';
-import * as github from '@actions/github'
+import * as github from '@actions/github';
+import * as core from '@actions/core';
 
+jest.mock('@actions/core', () => {
+  let input = {}
+
+  return {
+    debug: jest.fn(),
+    getInput(key) {
+      return input[key];
+    },
+    __setInput(i) {
+      input = i;
+    },
+  };
+});
+
+nock.disableNetConnect()
 nock('https://api.github.com').log(console.log)
-
-const ghClient = new github.GitHub('foozles');
-const input = {
-  slackHook: 'https://foo.slack/hook',
-  instructions: 'this is how we pr',
-  skipApprovalLabel: 'emergency-approval',
-  skipCILabel: 'emergency-ci',
-  requiredChecks: ['ci/circleci: fast_spec', 'ci/circleci: js'],
-}
 mockdate.set('2000-1-1 00:00:00');
+const ghClient = new github.GitHub('foozles');
 
 describe('pull request actions', () => {
+  beforeEach(() => {
+    // @ts-ignore
+    core.__setInput({
+      slack_hook: 'https://foo.slack/hook',
+      instructions: 'this is how we pr',
+      skip_approval_label: 'emergency-approval',
+      skip_ci_label: 'emergency-ci',
+      required_checks: 'ci/circleci: fast_spec, ci/circleci: js',
+    });
+  });
+
   afterEach(() => {
     expect(nock.isDone());
   });
@@ -38,7 +55,6 @@ describe('pull request actions', () => {
         issue: { owner: 'github', repo: 'my-repo', number: 12 },
         ref: 'f123',
       },
-      input,
     );
 
     expect(body['body']).toContain('this is how we pr');
@@ -72,7 +88,6 @@ describe('pull request actions', () => {
           issue: { owner: 'github', repo: 'my-repo', number: 12 },
           ref: 'f123',
         },
-        input,
       );
 
       expect(ghReviewBody).toEqual({
@@ -107,7 +122,6 @@ describe('pull request actions', () => {
           issue: { owner: 'github', repo: 'my-repo', number: 12 },
           ref: 'f123',
         },
-        input,
       );
 
       expect(checkUpdateBody).toEqual({ context: 'ci/circleci: fast_spec', state: 'success' });

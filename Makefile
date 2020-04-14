@@ -1,28 +1,29 @@
 SHELL:=/usr/bin/env bash
 PATH := $(PATH):node_modules/.bin
 
-SRC := $(shell find src/*.ts)
-OUT := $(patsubst src/%, lib/%.js, $(basename $(SRC)))
-
 .PHONY: clean package lint test test-watch
 
-all: test lib/main.js dist/index.js ## test, build, and pack
+all: verify clean dist/index.js ## test and package
 package: dist/index.js ## package
 
-$(word 1, $(OUT)): $(SRC)
-	tsc -p ./tsconfig.json
+setup:
+	yarn
 
-dist/index.js: lib/main.js
-	ncc build
+dist/index.js:
+	npx ncc build src/index.ts
 
 clean: ## clean dist/ & lib/
 	rm -rf dist/*
-	rm -rf lib/*
 
+.PHONY: verify
+verify: lint test
+
+.PHONY: lint
 lint: ## run linter
 	eslint --quiet src/**/*.ts
 
-test: lint ## run unit tests
+.PHONY: test
+test: ## run tests
 	jest
 
 test-watch: ## start test watcher

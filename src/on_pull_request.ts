@@ -1,4 +1,4 @@
-import * as core from '@actions/core'
+import * as core from '@actions/core';
 import * as request from 'request-promise-native';
 import * as github from '@actions/github'
 
@@ -11,7 +11,8 @@ interface ActionInput {
 }
 
 /**
- * Main entry point for all pullRequest actions
+ * Main entry point for all pullRequest actions.
+ * We've split these up for easier unit testing.
  *
  * This action is responsible for removing PR checks that
  * otherwise lock the merge button in the case of an emergency.
@@ -19,8 +20,17 @@ interface ActionInput {
  * While removing these checks it does so through explicit labels
  * and will notify any specified slack rooms.
  */
-export async function onPullRequest(octokit: github.GitHub, context, input: ActionInput) {
+export async function onPullRequest(octokit: github.GitHub, context) {
   const { payload } = context;
+
+  const input: ActionInput = {
+    slackHook: core.getInput('slack_hook'),
+    instructions: core.getInput('instructions'),
+    skipApprovalLabel: core.getInput('skip_approval_label'),
+    skipCILabel: core.getInput('skip_ci_label'),
+    requiredChecks: core.getInput('required_checks').split(','),
+  }
+
   if (payload.action === 'labeled') {
     await onLabel(octokit, context, input);
     return;
@@ -52,7 +62,7 @@ async function byPassChecks(octokit, issue, sha, checks) {
       repo: issue.repo,
       sha: sha,
       context,
-      state: 'success'
+      state: 'success',
     });
   });
 
@@ -104,7 +114,7 @@ async function onLabel(octokit: github.GitHub, context, input: ActionInput) {
       repo: issue.repo,
       pull_number: issue.number,
       body: `Skipping approval check - ${payload.label.name} applied`,
-      event: 'APPROVE'
+      event: 'APPROVE',
     });
   }
 }
@@ -114,7 +124,7 @@ async function comment(octokit: github.GitHub, issue, body: string) {
     owner: issue.owner,
     repo: issue.repo,
     issue_number: issue.number,
-    body: body.concat(getDateTime())
+    body: body.concat(getDateTime()),
   });
 }
 
@@ -123,9 +133,9 @@ async function slack(hook: string, msg: string) {
     uri: hook,
     method: 'POST',
     body: {
-      text: msg
+      text: msg,
     },
-    json: true
+    json: true,
   })
 }
 
