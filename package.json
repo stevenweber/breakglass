@@ -1,17 +1,13 @@
 {
-  "name": "typescript-action",
+  "name": "breakglass",
   "version": "0.0.0",
   "private": true,
-  "description": "TypeScript template action",
-  "main": "lib/main.js",
+  "description": "breakglass",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "format": "prettier --write **/*.ts",
-    "format-check": "prettier --check **/*.ts",
-    "lint": "eslint src/**/*.ts",
-    "pack": "ncc build",
-    "test": "jest",
-    "all": "npm run build && npm run format && npm run lint && npm run pack && npm test"
+    "build": "make",
+    "lint": "make lint",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -19,10 +15,9 @@
   },
   "keywords": [
     "actions",
-    "node",
-    "setup"
+    "node"
   ],
-  "author": "YourNameOrOrganization",
+  "author": "Reverb LLC",
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.2.0",
@@ -33,19 +28,18 @@
     "request-promise-native": "^1.0.8"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.23",
+    "@types/jest": "^25.2.0",
     "@types/node": "^12.7.12",
     "@typescript-eslint/eslint-plugin": "^2.22.0",
     "@typescript-eslint/parser": "^2.22.0",
     "@zeit/ncc": "^0.20.5",
     "eslint": "^5.16.0",
-    "jest": "^24.9.0",
-    "jest-circus": "^24.9.0",
+    "jest": "^25.2.0",
+    "jest-circus": "^25.2.0",
     "js-yaml": "^3.13.1",
     "mockdate": "^2.0.5",
     "nock": "^12.0.2",
-    "prettier": "^1.19.1",
-    "ts-jest": "^24.2.0",
+    "ts-jest": "25.2.1",
     "typescript": "^3.6.4"
   }
 }

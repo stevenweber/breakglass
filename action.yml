@@ -1,5 +1,5 @@
 name: 'breakglass'
-description: 'unlock the merge button in case of emergencies'
+description: 'bypass safeguards in an emergency'
 author: 'Reverb LLC'
 input:
   slack_hook:
