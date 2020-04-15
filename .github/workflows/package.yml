@@ -16,7 +16,7 @@ jobs:
         ref: master
     - name: Package
       run: |
-        make setup
+        make setup clean
         make
     - name: Commit
       run: |

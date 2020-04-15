@@ -55776,7 +55776,11 @@ function getDateTime() {
 }
 
 // CONCATENATED MODULE: ./src/on_issue.ts
+
+
 function onIssue() {
+    Object(core.debug)('onIssue triggered');
+    Object(core.debug)(JSON.stringify(github.context));
     return;
 }
 
@@ -55823,6 +55827,7 @@ function run() {
                 required: true,
             }));
             const input = getInput();
+            Object(core.debug)(`eventName: ${github.context.eventName}`);
             switch (github.context.eventName) {
                 case PULL_REQUEST_EVENT_NAME:
                     onPullRequest(octokit, github.context, input);
