@@ -16,13 +16,14 @@ export async function run(): Promise<void> {
     }));
 
     const input = getInput();
+    const { context } = github;
 
     switch (github.context.eventName) {
       case PULL_REQUEST_EVENT_NAME:
-        onPullRequest(octokit, github.context, input);
+        onPullRequest(octokit, context, input);
         break;
       case ISSUE_EVENT_NAME:
-        onIssue();
+        onIssue(context);
         break;
       default:
         core.setFailed(UNSUPPORTED_EVENT);
