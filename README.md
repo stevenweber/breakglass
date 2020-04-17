@@ -6,3 +6,8 @@ Breakglass
 ## Development
 
     make setup
+    make test
+
+## Packaging
+
+    make clean dist/index.js
