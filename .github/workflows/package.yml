@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - master
+      - test
 
 name: Package
 
@@ -20,7 +21,4 @@ jobs:
         make
     - name: Commit
       run: |
-        git config --global user.name "GitHub Actions"
-        git add dist/
-        git commit -m "Package" || echo "No changes to commit"
-        git push origin HEAD:master
+        env
