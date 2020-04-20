@@ -13,11 +13,13 @@ jobs:
       with:
         ref: ${{ env.GITHUB_REF }}
     - run: |
+        git log -n 10
+    - run: |
         git status
     - run: |
         touch change.txt
     - run: |
-        make setup clean dist/index.js
+        rm dist/index.js
     - run: |
         git add --all
     - run: |
