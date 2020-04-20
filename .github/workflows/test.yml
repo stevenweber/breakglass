@@ -17,6 +17,8 @@ jobs:
     - run: |
         touch change.txt
     - run: |
+        make clean dist/index.js
+    - run: |
         git add --all
     - run: |
         git status
