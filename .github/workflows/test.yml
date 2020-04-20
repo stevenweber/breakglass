@@ -11,14 +11,8 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: |
-        git log -n 10
+        make setup test
     - run: |
+        make clean dist/index.js
         git status
-    - run: |
-        touch change.txt
-    - run: |
-        make setup clean dist/index.js
-    - run: |
-        git add --all
-    - run: |
-        git status
+        git diff --quiet --exit-code || (echo "Make sure to check in the built project, i.e. run 'make dist/index.js'"; exit 1)
