@@ -14,3 +14,9 @@ jobs:
         ref: ${{ env.GITHUB_REF }}
     - run: |
         git status
+    - run: |
+        touch change.txt
+    - run: |
+        git add --all
+    - run: |
+        git status
