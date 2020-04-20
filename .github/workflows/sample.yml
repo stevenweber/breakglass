@@ -28,6 +28,9 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         relevant_labels: "console-access"
         required_checks: "ci/circleci: test,ci/circleci: lint"
+        circle_ci_token: ${{ secrets.CIRCLE_CI_TOKEN }}
+        circle_ci_project_slug: 'github/my-org/my-project'
+        circle_ci_workflow_name: 'build_and_test'
         instructions: |
             ## Checklists
 

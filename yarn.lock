@@ -570,6 +570,11 @@
   dependencies:
     debug "^4.0.0"
 
+"@reverbdotcom/url-template@^2.0.12":
+  version "2.0.12"
+  resolved "https://npm.pkg.github.com/download/@reverbdotcom/url-template/2.0.12/e5d2d999e63ece23247341ceb9840a88d0041c6ffa482abe26315984ffef377c#1354f000edf03c9ae963dcb51503790750cd4a04"
+  integrity sha512-PHi/5AlAWzFIuvzhNsC9CwtUnhhU03Q2Iqq85M1DKWiYp7z4ygBL/JBmpdbX+dfPWz4rTRjWkGmibJHLxMosKw==
+
 "@sinonjs/commons@^1.7.0":
   version "1.7.2"
   resolved "https://registry.yarnpkg.com/@sinonjs/commons/-/commons-1.7.2.tgz#505f55c74e0272b43f6c52d81946bed7058fc0e2"
@@ -2979,7 +2984,7 @@ nock@^12.0.2:
     lodash "^4.17.13"
     propagate "^2.0.0"
 
-node-fetch@^2.3.0:
+node-fetch@^2.3.0, node-fetch@^2.6.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.0.tgz#e633456386d4aa55863f676a7ab0daa8fdecb0fd"
   integrity sha512-8dG4H5ujfvFiqDmVu9fQ5bOHUC15JMjMY/Zumv26oOvvVJjM67KF8koCWIabKQ1GJIa9r2mMZscBq/TbdOcmNA==
