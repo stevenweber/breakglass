@@ -11,4 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: |
-        make setup lint test dist/index.js
+        make setup lint test
+    - run: |
+        make clean dist/index.js
+        git diff --quiet --exit-code || (echo "Make sure to check in the built project, i.e. run 'make dist/index.js'"; exit 1)
