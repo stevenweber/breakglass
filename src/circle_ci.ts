@@ -1,21 +1,16 @@
 import fetch from 'node-fetch';
-import * as core from '@actions/core';
 import * as template from '@reverbdotcom/url-template';
+import { REPO_SLUG } from './github';
+import { getInput } from './input';
+
+const {
+  CIToken,
+  CIWorkflow,
+} = getInput();
 
 const ENCODED_SLASH_MATCHER = /%2F/g;
+const PROJECT_SLUG = `github/${REPO_SLUG}`;
 const SLASH = '/';
-
-const CIRCLE_TOKEN = core.getInput('circle_ci_token', {
-  required: true,
-});
-
-const PROJECT_SLUG = core.getInput('circle_ci_project_slug', {
-  required: true,
-});
-
-const WORKFLOW_NAME = core.getInput('circle_ci_workflow_name: ', {
-  required: true,
-});
 
 const WORKFLOW_LINK = template.parse(
   'https://app.circleci.com/pipelines/{projectSlug}/{pipelineNumber}/workflows/{workflowID}'
@@ -70,7 +65,7 @@ async function request<R>(
   const response = await fetch(url, {
     headers: {
       'Accept': 'application/json',
-      'Circle-Token': CIRCLE_TOKEN,
+      'Circle-Token': CIToken,
     },
   });
   return response.json();
@@ -95,20 +90,20 @@ async function requestWorkflow(
 
 async function fetchMostRecentGreenBuild(): Promise<InsightWorkflow> {
   const { items } = await requestInsights({
-    workflowName: WORKFLOW_NAME,
+    workflowName: CIWorkflow,
     projectSlug: PROJECT_SLUG,
   });
   return items.find(i => i.status === Status.success);
 }
 
-export async function generateURLToPassedWorkflow(): Promise<string> {
+export async function fetchMostRecentGreenWorkflow(): Promise<Workflow | undefined> {
   const insightWorkflow = await fetchMostRecentGreenBuild();
-  if (!insightWorkflow) return '';
-
-  const workflow = await requestWorkflow({
+  return insightWorkflow && requestWorkflow({
     id: insightWorkflow.id,
   });
+}
 
+export function generateLinkToGreenWorkflow(workflow: Workflow) {
   return WORKFLOW_LINK.expand({
     projectSlug: PROJECT_SLUG,
     pipelineNumber: workflow.pipeline_number,

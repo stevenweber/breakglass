@@ -2,15 +2,28 @@
 import * as core from '@actions/core';
 
 export interface Input {
-  slackHook: string;
+  CIToken: string;
+  CIWorkflow: string;
+  githubToken: string;
   instructions: string;
+  requiredChecks: string[];
   skipApprovalLabel: string;
   skipCILabel: string;
-  requiredChecks: string[];
+  slackHook: string;
+  verifiedCILabel: string;
 }
 
 export function getInput(): Input {
   return {
+    CIToken: core.getInput('ci_token', {
+      required: true,
+    }),
+    CIWorkflow: core.getInput('ci_workflow', {
+      required: true,
+    }),
+    githubToken: core.getInput('github_token', {
+      required: true,
+    }),
     instructions: core.getInput('instructions'),
     requiredChecks: core.getInput('required_checks', {
       required: true,
@@ -20,5 +33,6 @@ export function getInput(): Input {
     slackHook: core.getInput('slack_hook', {
       required: true,
     }),
+    verifiedCILabel: core.getInput('verify_ci_label'),
   };
 }

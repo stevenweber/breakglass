@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { Input } from './input';
 import { postMessage } from './slack';
+import { formatComment } from './github';
 
 /**
  * Main entry point for all pullRequest actions.
@@ -103,14 +104,10 @@ async function comment(octokit: github.GitHub, issue, body: string) {
     owner: issue.owner,
     repo: issue.repo,
     issue_number: issue.number,
-    body: body.concat(getDateTime()),
+    body: formatComment(body),
   });
 }
 
 function pp(obj: Record<string, any>): string {
   return JSON.stringify(obj, undefined, 2);
-}
-
-function getDateTime() {
-  return `\n ${ new Date().toString() }`;
 }
