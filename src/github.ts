@@ -1,4 +1,5 @@
 import * as github from '@actions/github';
+import { getContext } from './context';
 import { getInput } from './input';
 
 const {
@@ -7,19 +8,29 @@ const {
   verifiedCILabel,
 } = getInput();
 
-export const client = new github.GitHub(githubToken);
-const { context } = github;
-const { repository } = context.payload;
+const { payload } = getContext();
+const { repository } = payload;
 const { name, owner } = repository;
 const { login } = owner;
 
 const CLOSED = 'closed';
+const MASTER = 'master';
 
+export const client = new github.GitHub(githubToken);
 export const OWNER = login;
 export const REPO = name;
 export const REPO_SLUG = `${login}/${name}`;
 
-export async function verifyCIChecksOnPR(number: number) {
+export async function getStatusOfMaster() {
+  const { data } = await client.repos.getCombinedStatusForRef({
+    owner: login,
+    repo: name,
+    ref: MASTER,
+  });
+  return data;
+}
+
+export async function tagCIChecksOnPR(number: number) {
   return labelIssue(number, verifiedCILabel);
 }
 
@@ -57,7 +68,7 @@ export async function addCommentToIssue(number: number, body: string) {
   });
 }
 
-function formatComment(body: string): string {
+export function formatComment(body: string): string {
   const now = new Date().toString();
   return `${body}\n\n---\n${now}`;
 }

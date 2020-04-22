@@ -2,12 +2,6 @@ name: 'breakglass'
 description: 'bypass safeguards in an emergency'
 author: 'Reverb LLC'
 input:
-  ci_token:
-    description: Token to use to fetch CI data
-    required: true
-  ci_workflow:
-    description: CI workflow name
-    required: true
   slack_hook:
     description: Slack webhook for announcements
     required: true

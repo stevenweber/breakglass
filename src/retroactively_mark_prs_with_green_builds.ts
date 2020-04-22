@@ -4,28 +4,24 @@
 import {
   addCommentToIssue,
   getPRsMissingCIChecks,
-  verifyCIChecksOnPR,
+  getStatusOfMaster,
+  tagCIChecksOnPR,
 } from './github';
 
-import {
-  fetchMostRecentGreenWorkflow,
-  generateLinkToGreenWorkflow,
-} from './circle_ci';
+const SUCCESS = 'success';
 
 export async function retroactivelyMarkPRsWithGreenBuilds() {
   const pullRequests = await getPRsMissingCIChecks();
   if (!pullRequests.length) return;
 
-  const workflow = await fetchMostRecentGreenWorkflow();
-  const wentGreenAt = workflow.created_at;
-  const link = generateLinkToGreenWorkflow(workflow);
-  const message = `Code from this PR has passed CI checks.\n\n${link}`;
+  const { state, sha } = await getStatusOfMaster();
+  if (state !== SUCCESS) return;
+
+  const message = `Code from this PR has passed all checks.\n\n${sha}`;
 
   await pullRequests.forEach(async (pullRequest) => {
-    const { closed_at, number } = pullRequest;
-    if (new Date(closed_at) > new Date(wentGreenAt)) return;
-
+    const { number } = pullRequest;
     await addCommentToIssue(number, message);
-    await verifyCIChecksOnPR(pullRequest.number);
+    await tagCIChecksOnPR(pullRequest.number);
   });
 }

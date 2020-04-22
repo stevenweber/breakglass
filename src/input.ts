@@ -2,8 +2,6 @@
 import * as core from '@actions/core';
 
 export interface Input {
-  CIToken: string;
-  CIWorkflow: string;
   githubToken: string;
   instructions: string;
   requiredChecks: string[];
@@ -15,12 +13,6 @@ export interface Input {
 
 export function getInput(): Input {
   return {
-    CIToken: core.getInput('ci_token', {
-      required: true,
-    }),
-    CIWorkflow: core.getInput('ci_workflow', {
-      required: true,
-    }),
     githubToken: core.getInput('github_token', {
       required: true,
     }),
