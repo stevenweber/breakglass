@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
-import * as request from 'request-promise-native';
 import * as github from '@actions/github';
 import { Input } from './input';
+import { postMessage } from './slack';
 
 /**
  * Main entry point for all pullRequest actions.
@@ -67,10 +67,7 @@ async function onLabel(octokit: github.GitHub, context, input: Input) {
   if (payload.label.name === input.skipCILabel) {
     core.debug(`skip_ci_label applied`);
 
-    await slack(
-      input.slackHook,
-      `Bypassing CI checks for: https://github.com/${owner}/${repo}/${number}`
-    );
+    await postMessage(`Bypassing CI checks for: https://github.com/${owner}/${repo}/${number}`);
 
     await comment(
       octokit,
@@ -89,10 +86,7 @@ async function onLabel(octokit: github.GitHub, context, input: Input) {
   if (payload.label.name === input.skipApprovalLabel) {
     core.debug(`skip_approval applied`);
 
-    await slack(
-      input.slackHook,
-      `Bypassing peer approval for: https://github.com/${owner}/${repo}/${number}`
-    );
+    await postMessage(`Bypassing peer approval for: https://github.com/${owner}/${repo}/${number}`);
 
     await octokit.pulls.createReview({
       owner: issue.owner,
@@ -110,17 +104,6 @@ async function comment(octokit: github.GitHub, issue, body: string) {
     repo: issue.repo,
     issue_number: issue.number,
     body: body.concat(getDateTime()),
-  });
-}
-
-async function slack(hook: string, msg: string) {
-  request({
-    uri: hook,
-    method: 'POST',
-    body: {
-      text: msg,
-    },
-    json: true,
   });
 }
 

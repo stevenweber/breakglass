@@ -18,7 +18,7 @@ jest.mock('@actions/github', () => {
 jest.mock('@actions/core', () => {
   return {
     debug: jest.fn(),
-    getInput: jest.fn(),
+    getInput: jest.fn().mockImplementation(_ => ''),
     setFailed: jest.fn(),
   };
 });

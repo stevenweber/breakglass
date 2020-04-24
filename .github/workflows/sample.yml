@@ -1,7 +1,7 @@
-name: sample-workflow
+name: sample-breakglass
 on:
   issues:
-    types: [opened, assigned, labeled]
+    types: [labeled]
 
   pull_request:
     branches:
@@ -11,21 +11,22 @@ on:
       - opened
 
 jobs:
-  handle-prs:
-    name: Handle PRs
+  breakglass:
+    name: Breaking the glass
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Breakglass PR integration
+    - name: Handle event
       uses: ./
       with:
         slack_hook: ${{ secrets.SLACK_HOOK }}
         skip_ci_label: the-label-that-triggers-ci-skip
-        skip_approval_label: the-label-that-triggers-approval-skiip
+        skip_approval_label: the-label-that-triggers-approval-skip
         github_token: ${{ secrets.GITHUB_TOKEN }}
+        relevant_labels: "console-access"
         required_checks: "ci/circleci: test,ci/circleci: lint"
         instructions: |
             ## Checklists

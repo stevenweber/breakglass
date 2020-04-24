@@ -1,5 +1,8 @@
+jest.mock('../src/slack');
+
 import * as nock from 'nock';
 import * as mockdate from 'mockdate'
+import { postMessage } from '../src/slack';
 import { onPullRequest } from '../src/on_pull_request';
 import * as github from '@actions/github';
 import * as core from '@actions/core';
@@ -10,7 +13,7 @@ mockdate.set('2000-1-1 00:00:00');
 
 const ghClient = new github.GitHub('foozles');
 const input = {
-  slackHook: 'https://foo.slack/hook',
+  slackHook: '',
   instructions: 'this is how we pr',
   skipApprovalLabel: 'emergency-approval',
   skipCILabel: 'emergency-ci',
@@ -49,16 +52,6 @@ describe('pull request actions', () => {
   });
 
   describe('on label', () => {
-    let slackMsg;
-
-    beforeEach(() => {
-      nock('https://foo.slack/')
-        .post('/hook', (req) =>  {
-          slackMsg = req;
-          return true;
-        }).reply(200, 'way to go');
-    });
-
     test('on label emergency-approval', async () => {
       let ghReviewBody;
 
@@ -116,9 +109,7 @@ describe('pull request actions', () => {
       expect(checkUpdateBody).toEqual({ context: 'ci/circleci: fast_spec', state: 'success' });
       expect(ghCommentBody['body']).toContain('Bypassing CI checks - emergency-ci applied');
       expect(ghCommentBody['body']).toContain('Jan 01 2000 00:00:00');
-      expect(slackMsg).toEqual({
-        text: 'Bypassing CI checks for: https://github.com/github/my-repo/12'
-      });
+      expect(postMessage).toHaveBeenCalledWith(expect.stringMatching(/bypassing ci/i));
     });
   });
 });
