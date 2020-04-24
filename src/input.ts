@@ -7,9 +7,9 @@ export interface Input {
   skipApprovalLabel: string;
   skipCILabel: string;
   requiredChecks: string[];
-  repo: string;
-  owner: string;
-  retroactiveApprovalLabel: string;
+  repo?: string;
+  owner?: string;
+  retroactiveApprovalLabel?: string;
 }
 
 export function getInput(): Input {
