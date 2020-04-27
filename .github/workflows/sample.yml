@@ -1,5 +1,8 @@
 name: sample-breakglass
 on:
+  schedule:
+    - cron:  '0 0 * * *'
+
   issues:
     types: [labeled]
 

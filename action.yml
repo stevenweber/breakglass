@@ -5,6 +5,10 @@ input:
   slack_hook:
     description: Slack webhook for announcements
     required: true
+  verified_ci_label:
+    description: The label to apply to PRs that have retroactively passed ci
+    required: false
+    default: verified-ci
   skip_ci_label:
     description: The label for skipping CI
     required: false
