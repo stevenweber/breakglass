@@ -6,6 +6,8 @@ const {
   githubToken,
   skipCILabel,
   verifiedCILabel,
+  skipApprovalLabel,
+  posthocApprovalLabel,
 } = getInput();
 
 const { payload } = getContext();
@@ -32,6 +34,19 @@ export async function getStatusOfMaster() {
 
 export async function tagCIChecksOnPR(number: number) {
   return labelIssue(number, verifiedCILabel);
+}
+
+export async function getMergedEmergencyPRsMissingReview() {
+  const { data } = await client.search.issuesAndPullRequests({
+    q: [
+      `repo:${REPO_SLUG}`,
+      `label:${skipApprovalLabel}`,
+      `-label:${posthocApprovalLabel}`,
+      `state:${CLOSED}`, // merged
+    ].join('+'),
+  });
+
+  return data.items.filter(i => i.pull_request);
 }
 
 export async function getPRsMissingCIChecks() {

@@ -5,6 +5,7 @@ export function getInput() {
     requiredChecks: ['the', 'required', 'checks'],
     skipApprovalLabel: 'the-skip-approval-label',
     skipCILabel: 'the-skip-ci-label',
+    posthocApprovalLabel: 'the-posthoc-approval-label',
     slackHook: 'the-slack-hook',
     verifiedCILabel: 'the-verified-ci-label',
   };
