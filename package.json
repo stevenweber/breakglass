@@ -24,8 +24,10 @@
     "@actions/github": "^2.1.1",
     "@octokit/webhooks": "^7.1.0",
     "@types/request-promise-native": "^1.0.17",
+    "node-fetch": "^2.6.0",
     "request": "^2.88.2",
-    "request-promise-native": "^1.0.8"
+    "request-promise-native": "^1.0.8",
+    "url-template": "^2.0.8"
   },
   "devDependencies": {
     "@types/jest": "^25.2.0",

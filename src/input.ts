@@ -2,18 +2,21 @@
 import * as core from '@actions/core';
 
 export interface Input {
-  slackHook: string;
+  githubToken: string;
   instructions: string;
+  requiredChecks: string[];
   skipApprovalLabel: string;
   skipCILabel: string;
-  requiredChecks: string[];
-  repo?: string;
-  owner?: string;
-  retroactiveApprovalLabel?: string;
+  posthocApprovalLabel?: string;
+  slackHook: string;
+  verifiedCILabel: string;
 }
 
 export function getInput(): Input {
   return {
+    githubToken: core.getInput('github_token', {
+      required: true,
+    }),
     instructions: core.getInput('instructions'),
     requiredChecks: core.getInput('required_checks', {
       required: true,
@@ -23,8 +26,7 @@ export function getInput(): Input {
     slackHook: core.getInput('slack_hook', {
       required: true,
     }),
-    repo: core.getInput('repo'),
-    owner: core.getInput('owner'),
-    retroactiveApprovalLabel: core.getInput('retroactive_approval_label')
+    posthocApprovalLabel: core.getInput('retroactive_approval_label'),
+    verifiedCILabel: core.getInput('verify_ci_label')
   };
 }

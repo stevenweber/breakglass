@@ -1,16 +1,12 @@
+jest.mock('./../src/input');
+jest.mock('./../src/context');
 jest.mock('./../src/on_issue');
 jest.mock('./../src/on_pull_request');
 jest.mock('./../src/on_cron');
-
-jest.mock('./../src/input', () => {
-  return {
-    getInput: jest.fn(),
-  };
-});
+jest.mock('./../src/retroactively_mark_prs_with_green_builds');
 
 jest.mock('@actions/github', () => {
   return {
-    context: {},
     GitHub: jest.fn(),
   };
 });
@@ -23,6 +19,7 @@ jest.mock('@actions/core', () => {
   };
 });
 
+import { getContext } from '../src/context';
 import { mocked } from 'ts-jest/utils';
 import { run } from './../src/run';
 import { onIssue } from './../src/on_issue';
@@ -31,10 +28,20 @@ import { onCron } from './../src/on_cron';
 import * as core from '@actions/core'
 import * as github from '@actions/github';
 
+import {
+  retroactivelyMarkPRsWithGreenBuilds,
+} from '../src/retroactively_mark_prs_with_green_builds';
+
+function mockContext(context = {} as any) {
+  mocked(getContext).mockReturnValue(context);
+}
+
 describe('::run', () => {
   describe('pr event', () => {
     beforeEach(() => {
-      github.context.eventName = 'pull_request';
+      mockContext({
+        eventName: 'pull_request',
+      });
     });
 
     it('only runs onPullRequest', () => {
@@ -44,9 +51,45 @@ describe('::run', () => {
     });
   });
 
+  describe('schedule event', () => {
+    describe('daily cron', () => {
+      beforeEach(() => {
+        mockContext({
+          eventName: 'schedule',
+          payload: {
+            schedule: '0 0 * * *',
+          }
+        });
+      });
+
+      it('runs retroactive ci checks', () => {
+        run();
+        expect(retroactivelyMarkPRsWithGreenBuilds).toHaveBeenCalled();
+      })
+    });
+
+    describe('other crons', () => {
+      beforeEach(() => {
+        mockContext({
+          eventName: 'schedule',
+          payload: {
+            schedule: '0 * * * *',
+          }
+        });
+      });
+
+      it('does not run', () => {
+        run();
+        expect(retroactivelyMarkPRsWithGreenBuilds).not.toHaveBeenCalled();
+      });
+    });
+  });
+
   describe('issue event', () => {
     beforeEach(() => {
-      github.context.eventName = 'issues';
+      mockContext({
+        eventName: 'issues',
+      });
     });
 
     it('runs onIssue', () => {
@@ -56,21 +99,11 @@ describe('::run', () => {
     });
   });
 
-  describe('cron event', () => {
-    beforeEach(() => {
-      github.context.eventName = 'cron';
-    })
-
-    it('runs onCron', () => {
-      run();
-      expect(onCron).toHaveBeenCalled();
-    });
-
-  })
-
   describe('unsuppored event', () => {
     beforeEach(() => {
-      github.context.eventName = 'non_supported_event';
+      mockContext({
+        eventName: 'non_supported_event',
+      });
     });
 
     it('fails the workflow', () => {
@@ -81,7 +114,9 @@ describe('::run', () => {
 
   describe('on error', () => {
     beforeEach(() => {
-      github.context.eventName = 'issues';
+      mockContext({
+        eventName: 'issues',
+      });
     });
 
     it('fails the workflow', () => {

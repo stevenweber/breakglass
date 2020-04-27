@@ -1,3 +1,5 @@
+jest.mock('../src/input');
+jest.mock('../src/context');
 jest.mock('../src/slack');
 
 import * as nock from 'nock';
@@ -13,6 +15,7 @@ mockdate.set('2000-1-1 00:00:00');
 
 const ghClient = new github.GitHub('foozles');
 const input = {
+  githubToken: 'the-github-token',
   slackHook: '',
   instructions: 'this is how we pr',
   skipApprovalLabel: 'emergency-approval',
@@ -21,6 +24,7 @@ const input = {
     'ci/circleci: fast_spec',
     'ci/circleci: js',
   ],
+  verifiedCILabel: 'the-verified-ci-label',
 };
 
 describe('pull request actions', () => {

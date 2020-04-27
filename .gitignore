@@ -99,5 +99,10 @@ __tests__/runner/*
 lib/**/*
 
 test.js
+tmp/
+
+.env
+.github_event.json
+run-development.ts
 
 *.swp
