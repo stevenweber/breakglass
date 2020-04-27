@@ -2,7 +2,6 @@ jest.mock('./../src/input');
 jest.mock('./../src/context');
 jest.mock('./../src/on_issue');
 jest.mock('./../src/on_pull_request');
-jest.mock('./../src/on_cron');
 jest.mock('./../src/retroactively_mark_prs_with_green_builds');
 
 jest.mock('@actions/github', () => {
@@ -24,7 +23,6 @@ import { mocked } from 'ts-jest/utils';
 import { run } from './../src/run';
 import { onIssue } from './../src/on_issue';
 import { onPullRequest } from './../src/on_pull_request';
-import { onCron } from './../src/on_cron';
 import * as core from '@actions/core'
 import * as github from '@actions/github';
 
