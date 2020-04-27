@@ -17,14 +17,7 @@ input:
     description: The label for skipping peer approval
     required: false
     default: emergency-approval
-  owner:
-    description: The calling repo's owner
-    required: false
-  repo:
-    description: The calling repo
-    required: false
-    default: breakglass
-  retroactive_approval_label:
+  posthoc_approval_label:
     description: The label denoting approval after merge
     required: false
     default: posthoc-approval
