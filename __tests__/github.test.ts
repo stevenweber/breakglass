@@ -7,6 +7,7 @@ nock.disableNetConnect();
 import {
   addCommentToIssue,
   getPRsMissingCIChecks,
+  getMergedEmergencyPRsMissingReview,
   labelIssue,
   tagCIChecksOnPR,
   getStatusOfMaster,
@@ -117,4 +118,27 @@ describe('github', () => {
       expect(prs[0].id).toEqual(1);
     });
   });
+
+  describe('::getMergedEmergencyPrsMissingReview', () => {
+    it('returns pull requests that have the approval bypass tag, are merged, but not the posthoc review tag', async () => {
+      expect.assertions(2);
+
+      const q = 'repo%3Athe-org%2Fthe-repo+label%3Athe-skip-approval-label+-label%3Athe-posthoc-approval-label+state%3Aclosed';
+      nock(API).get(`/search/issues?q=${q}`).reply(200, {
+        items: [{
+          id: 1,
+          name: 'pr',
+          pull_request: {},
+        }, {
+          id: 2,
+          name: 'an issue',
+        }],
+      });
+
+      const prs = await getMergedEmergencyPRsMissingReview();
+      expect(prs.length).toEqual(1);
+      expect(prs[0].id).toEqual(1);
+    });
+  });
+
 });

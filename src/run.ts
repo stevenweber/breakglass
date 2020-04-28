@@ -5,6 +5,7 @@ import { onIssue } from './on_issue';
 import { getInput } from './input';
 import { getContext } from './context';
 import { retroactivelyMarkPRsWithGreenBuilds } from './retroactively_mark_prs_with_green_builds';
+import { auditEmergencyMerges } from './audit_emergency_merges';
 
 const PULL_REQUEST_EVENT_NAME = 'pull_request';
 const ISSUE_EVENT_NAME = 'issues';
@@ -34,6 +35,7 @@ export async function run(): Promise<void> {
     switch (context.eventName) {
       case SCHEDULE:
         onDaily(retroactivelyMarkPRsWithGreenBuilds);
+        onDaily(auditEmergencyMerges);
         break;
       case PULL_REQUEST_EVENT_NAME:
         onPullRequest(octokit, context, input);

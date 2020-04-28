@@ -7,6 +7,7 @@ export interface Input {
   requiredChecks: string[];
   skipApprovalLabel: string;
   skipCILabel: string;
+  posthocApprovalLabel?: string;
   slackHook: string;
   verifiedCILabel: string;
 }
@@ -25,6 +26,7 @@ export function getInput(): Input {
     slackHook: core.getInput('slack_hook', {
       required: true,
     }),
-    verifiedCILabel: core.getInput('verify_ci_label'),
+    posthocApprovalLabel: core.getInput('retroactive_approval_label'),
+    verifiedCILabel: core.getInput('verify_ci_label')
   };
 }
