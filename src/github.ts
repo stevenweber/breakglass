@@ -10,23 +10,19 @@ const {
   posthocApprovalLabel,
 } = getInput();
 
-const { payload } = getContext();
-const { repository } = payload;
-const { name, owner } = repository;
-const { login } = owner;
+const context = getContext();
+const { owner, repo } = context.repo;
 
 const CLOSED = 'closed';
 const MASTER = 'master';
 
 export const client = new github.GitHub(githubToken);
-export const OWNER = login;
-export const REPO = name;
-export const REPO_SLUG = `${login}/${name}`;
+export const REPO_SLUG = `${owner}/${repo}`;
 
 export async function getStatusOfMaster() {
   const { data } = await client.repos.getCombinedStatusForRef({
-    owner: login,
-    repo: name,
+    owner,
+    repo,
     ref: MASTER,
   });
   return data;
@@ -64,8 +60,8 @@ export async function getPRsMissingCIChecks() {
 
 export async function labelIssue(number: number, label: string) {
   return client.issues.addLabels({
-    owner: OWNER,
-    repo: REPO,
+    owner,
+    repo,
     issue_number: number,
     labels: [
       label,
@@ -76,8 +72,8 @@ export async function labelIssue(number: number, label: string) {
 
 export async function addCommentToIssue(number: number, body: string) {
   return client.issues.createComment({
-    owner: OWNER,
-    repo: REPO,
+    owner,
+    repo,
     issue_number: number,
     body: formatComment(body),
   });

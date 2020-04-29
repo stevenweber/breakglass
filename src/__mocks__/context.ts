@@ -1,12 +1,13 @@
 export const mock = jest.fn();
 mock.mockReturnValue({
   payload: {
-    repository: {
-      name: 'the-repo',
-      owner: {
-        login: 'the-org',
-      },
-    },
+  },
+
+  get repo() {
+    return {
+      owner: 'the-org',
+      repo: 'the-repo',
+    };
   },
 });
 
