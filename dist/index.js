@@ -14311,21 +14311,17 @@ var github_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _a
 
 
 const { githubToken, skipCILabel, verifiedCILabel, skipApprovalLabel, posthocApprovalLabel, } = getInput();
-const { payload: github_payload } = getContext();
-const { repository } = github_payload;
-const { name: github_name, owner: github_owner } = repository;
-const { login } = github_owner;
+const github_context = getContext();
+const { owner: github_owner, repo: github_repo } = github_context.repo;
 const CLOSED = 'closed';
 const MASTER = 'master';
 const client = new github.GitHub(githubToken);
-const OWNER = login;
-const REPO = github_name;
-const REPO_SLUG = `${login}/${github_name}`;
+const REPO_SLUG = `${github_owner}/${github_repo}`;
 function getStatusOfMaster() {
     return github_awaiter(this, void 0, void 0, function* () {
         const { data } = yield client.repos.getCombinedStatusForRef({
-            owner: login,
-            repo: github_name,
+            owner: github_owner,
+            repo: github_repo,
             ref: MASTER,
         });
         return data;
@@ -14365,8 +14361,8 @@ function getPRsMissingCIChecks() {
 function labelIssue(number, label) {
     return github_awaiter(this, void 0, void 0, function* () {
         return client.issues.addLabels({
-            owner: OWNER,
-            repo: REPO,
+            owner: github_owner,
+            repo: github_repo,
             issue_number: number,
             labels: [
                 label,
@@ -14377,8 +14373,8 @@ function labelIssue(number, label) {
 function addCommentToIssue(number, body) {
     return github_awaiter(this, void 0, void 0, function* () {
         return client.issues.createComment({
-            owner: OWNER,
-            repo: REPO,
+            owner: github_owner,
+            repo: github_repo,
             issue_number: number,
             body: formatComment(body),
         });
