@@ -14293,7 +14293,7 @@ function getInput() {
             required: true,
         }),
         posthocApprovalLabel: Object(core.getInput)('retroactive_approval_label'),
-        verifiedCILabel: Object(core.getInput)('verify_ci_label')
+        verifiedCILabel: Object(core.getInput)('verified_ci_label'),
     };
 }
 
@@ -14655,6 +14655,8 @@ function run() {
             }));
             const input = getInput();
             const context = getContext();
+            Object(core.debug)(JSON.stringify(getInput()));
+            Object(core.debug)(JSON.stringify(process.env));
             switch (context.eventName) {
                 case SCHEDULE:
                     onDaily(retroactivelyMarkPRsWithGreenBuilds);
