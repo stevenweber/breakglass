@@ -31,6 +31,7 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         relevant_labels: "console-access"
         required_checks: "ci/circleci: test,ci/circleci: lint"
+        numOctocats:
         instructions: |
             ## Checklists
 
