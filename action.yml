@@ -2,6 +2,10 @@ name: 'breakglass'
 description: 'bypass safeguards in an emergency'
 author: 'Reverb LLC'
 input:
+  numOctocats:
+    description: 'Number of Octocats'
+    required: false
+    default: '1'
   slack_hook:
     description: Slack webhook for announcements
     required: true
